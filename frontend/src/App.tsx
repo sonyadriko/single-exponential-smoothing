@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Dashboard from './components/Dashboard';
 import Login from './components/Login';
+import AdminDashboard from './components/AdminDashboard';
+import OwnerDashboard from './components/OwnerDashboard';
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [userRole, setUserRole] = useState<string | null>(localStorage.getItem('role'));
 
   useEffect(() => {
-    // Optional: Validate token on mount
     if (!token) {
       localStorage.removeItem('token');
       localStorage.removeItem('role');
@@ -32,21 +32,40 @@ function App() {
               !token ? (
                 <Login setToken={setToken} setUserRole={setUserRole} />
               ) : (
-                <Navigate to="/dashboard" replace />
+                <Navigate to={userRole === 'admin' ? '/admin' : '/owner'} replace />
               )
             }
           />
           <Route
-            path="/dashboard"
+            path="/admin"
             element={
-              token ? (
-                <Dashboard userRole={userRole} onLogout={handleLogout} token={token} />
+              token && userRole === 'admin' ? (
+                <AdminDashboard token={token} onLogout={handleLogout} />
               ) : (
                 <Navigate to="/login" replace />
               )
             }
           />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route
+            path="/owner"
+            element={
+              token && userRole === 'owner' ? (
+                <OwnerDashboard token={token} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route 
+            path="/" 
+            element={
+              token ? (
+                <Navigate to={userRole === 'admin' ? '/admin' : '/owner'} replace />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            } 
+          />
         </Routes>
       </div>
     </Router>
