@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Calculator, Play, TrendingUp } from 'lucide-react';
-import axios from 'axios';
+import api from '../api';
 
 interface ForecastCalculatorProps {
     token: string;
@@ -8,7 +8,7 @@ interface ForecastCalculatorProps {
     projectName?: string;
 }
 
-const ForecastCalculator: React.FC<ForecastCalculatorProps> = ({ token, onForecastGenerated, projectName }) => {
+const ForecastCalculator: React.FC<ForecastCalculatorProps> = ({ token: _token, onForecastGenerated, projectName }) => {
     const [alpha, setAlpha] = useState(0.5);
     const [selectedProduct, setSelectedProduct] = useState<string>('');
     const [projectNameInput, setProjectNameInput] = useState(projectName || '');
@@ -30,11 +30,7 @@ const ForecastCalculator: React.FC<ForecastCalculatorProps> = ({ token, onForeca
                 payload.project_name = projectNameInput.trim();
             }
 
-            const response = await axios.post(
-                'http://127.0.0.1:8000/forecast',
-                payload,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const response = await api.post('/forecast', payload);
             setResults(response.data);
             onForecastGenerated();
         } catch (err: any) {

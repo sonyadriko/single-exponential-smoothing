@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { Lock, User, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { jwtDecode } from 'jwt-decode';
+import api from '../api';
 
 interface LoginProps {
     setToken: (token: string) => void;
@@ -27,7 +27,7 @@ const Login: React.FC<LoginProps> = ({ setToken, setUserRole }) => {
             formData.append('username', username);
             formData.append('password', password);
 
-            const response = await axios.post('http://127.0.0.1:8000/token', formData);
+            const response = await api.post('/token', formData);
             const token = response.data.access_token;
 
             setToken(token);

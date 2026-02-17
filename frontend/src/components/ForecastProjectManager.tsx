@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FolderOpen, Plus, Trash2, Edit2, Eye, Calendar, User, TrendingUp, FileText } from 'lucide-react';
-import axios from 'axios';
+import { FolderOpen, Plus, Trash2, Edit2, Calendar, User, TrendingUp, FileText } from 'lucide-react';
+import api from '../api';
 
 interface Project {
     project_name: string;
@@ -17,7 +17,7 @@ interface ForecastProjectManagerProps {
     onViewDetail: (projectName: string) => void;
 }
 
-const ForecastProjectManager: React.FC<ForecastProjectManagerProps> = ({ token, onViewProject, onViewDetail }) => {
+const ForecastProjectManager: React.FC<ForecastProjectManagerProps> = ({ token: _token, onViewProject, onViewDetail }) => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [showNewModal, setShowNewModal] = useState(false);
@@ -29,9 +29,7 @@ const ForecastProjectManager: React.FC<ForecastProjectManagerProps> = ({ token, 
 
     const fetchProjects = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/forecast/projects', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get('/forecast/projects');
             setProjects(response.data);
         } catch (err: any) {
             console.error('Failed to fetch projects:', err);
@@ -51,10 +49,7 @@ const ForecastProjectManager: React.FC<ForecastProjectManagerProps> = ({ token, 
         if (!confirm(`Delete project "${projectName}"? This cannot be undone.`)) return;
         
         try {
-            await axios.delete(
-                `http://127.0.0.1:8000/forecast/project/${encodeURIComponent(projectName)}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.delete(`/forecast/project/${encodeURIComponent(projectName)}`);
             fetchProjects();
         } catch (err: any) {
             alert('Failed to delete project: ' + (err.response?.data?.detail || err.message));
@@ -66,11 +61,7 @@ const ForecastProjectManager: React.FC<ForecastProjectManagerProps> = ({ token, 
         if (!newName || newName === projectName) return;
 
         try {
-            await axios.put(
-                `http://127.0.0.1:8000/forecast/project/${encodeURIComponent(projectName)}?new_name=${encodeURIComponent(newName)}`,
-                {},
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.put(`/forecast/project/${encodeURIComponent(projectName)}?new_name=${encodeURIComponent(newName)}`, {});
             fetchProjects();
         } catch (err: any) {
             alert('Failed to rename project: ' + (err.response?.data?.detail || err.message));

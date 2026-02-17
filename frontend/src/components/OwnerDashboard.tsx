@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LogOut, BarChart3, Calendar } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import axios from 'axios';
+import api from '../api';
 
 interface OwnerDashboardProps {
     token: string;
@@ -20,7 +20,7 @@ interface ForecastData {
     forecasts: number[];
 }
 
-const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ token, onLogout }) => {
+const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ token: _token, onLogout }) => {
     const [forecast, setForecast] = useState<ForecastData | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -30,9 +30,7 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ token, onLogout }) => {
 
     const fetchLatestForecast = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/forecast/latest', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get('/forecast/latest');
             setForecast(response.data);
         } catch (err: any) {
             console.error('Failed to fetch forecast:', err);

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BarChart3, AlertCircle, Loader2, LogOut, Plus, RefreshCw, Save } from 'lucide-react';
 import { cn } from '../lib/utils';
 import ForecastChart from './ForecastChart';
-import axios from 'axios';
+import api from '../api';
 
 interface DashboardProps {
     userRole: string | null;
@@ -15,7 +15,7 @@ const PRODUCTS = [
     "Nasi Ayam", "Nasi Lele", "Nasi 3T", "Es Teh", "Es Jeruk"
 ];
 
-const Dashboard: React.FC<DashboardProps> = ({ userRole, token, onLogout }) => {
+const Dashboard: React.FC<DashboardProps> = ({ userRole, token: _token, onLogout }) => {
     const [alpha, setAlpha] = useState(0.5);
     const [results, setResults] = useState<any>(null);
     const [loading, setLoading] = useState(false);
@@ -35,11 +35,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, token, onLogout }) => {
         setError(null);
         try {
             // POST request to /forecast with Alpha. The backend now fetches data from DB itself.
-            const response = await axios.post(
-                'http://127.0.0.1:8000/forecast',
-                { alpha: alpha },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const response = await api.post('/forecast', { alpha: alpha });
             setResults(response.data);
         } catch (err: any) {
             console.error(err);
@@ -56,11 +52,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, token, onLogout }) => {
     const handleAddData = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.post(
-                'http://127.0.0.1:8000/sales',
-                newData,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.post('/sales', newData);
             setShowAddModal(false);
             setRefreshKey(prev => prev + 1); // Trigger re-fetch
         } catch (err: any) {
@@ -71,11 +63,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, token, onLogout }) => {
     const handleResetData = async () => {
         if (!confirm("Are you sure you want to reset all data to the initial May dataset? This cannot be undone.")) return;
         try {
-            await axios.post(
-                'http://127.0.0.1:8000/reset-data',
-                {},
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.post('/reset-data', {});
             setRefreshKey(prev => prev + 1);
         } catch (err: any) {
             alert('Failed to reset: ' + err.message);

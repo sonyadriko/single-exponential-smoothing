@@ -26,7 +26,7 @@ services:
       dockerfile: Dockerfile
     container_name: ses-forecast-frontend
     ports:
-      - "80:80"
+      - "3010:80"
     depends_on:
       - backend
     restart: unless-stopped

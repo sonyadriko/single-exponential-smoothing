@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Calendar, TrendingUp } from 'lucide-react';
-import axios from 'axios';
+import api from '../api';
 
 interface Sale {
     id: number;
@@ -18,7 +18,7 @@ interface SalesInputProps {
     token: string;
 }
 
-const SalesInput: React.FC<SalesInputProps> = ({ token }) => {
+const SalesInput: React.FC<SalesInputProps> = ({ token: _token }) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [selectedProduct, setSelectedProduct] = useState<string>('');
     const [sales, setSales] = useState<Sale[]>([]);
@@ -39,9 +39,7 @@ const SalesInput: React.FC<SalesInputProps> = ({ token }) => {
 
     const fetchProducts = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/products', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get('/products');
             setProducts(response.data);
             if (response.data.length > 0 && !selectedProduct) {
                 setSelectedProduct(response.data[0].name);
@@ -54,10 +52,7 @@ const SalesInput: React.FC<SalesInputProps> = ({ token }) => {
     const fetchSales = async () => {
         if (!selectedProduct) return;
         try {
-            const response = await axios.get(
-                `http://127.0.0.1:8000/sales/product/${encodeURIComponent(selectedProduct)}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const response = await api.get(`/sales/product/${encodeURIComponent(selectedProduct)}`);
             setSales(response.data);
         } catch (err: any) {
             console.error('Failed to fetch sales:', err);
@@ -69,15 +64,11 @@ const SalesInput: React.FC<SalesInputProps> = ({ token }) => {
         if (!selectedProduct || newSale.qty <= 0) return;
 
         try {
-            await axios.post(
-                'http://127.0.0.1:8000/sales',
-                {
-                    date: newSale.date,
-                    product_name: selectedProduct,
-                    qty: newSale.qty
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.post('/sales', {
+                date: newSale.date,
+                product_name: selectedProduct,
+                qty: newSale.qty
+            });
             setNewSale({ ...newSale, qty: 0 });
             fetchSales();
         } catch (err: any) {
@@ -88,9 +79,7 @@ const SalesInput: React.FC<SalesInputProps> = ({ token }) => {
     const handleDeleteSale = async (saleId: number) => {
         if (!confirm('Delete this sale record?')) return;
         try {
-            await axios.delete(`http://127.0.0.1:8000/sales/${saleId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/sales/${saleId}`);
             fetchSales();
         } catch (err: any) {
             alert('Failed to delete sale: ' + (err.response?.data?.detail || err.message));

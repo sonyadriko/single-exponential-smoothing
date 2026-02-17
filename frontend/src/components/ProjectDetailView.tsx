@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Calculator, TrendingUp } from 'lucide-react';
-import axios from 'axios';
+import api from '../api';
 
 interface ProjectDetailViewProps {
     token: string;
@@ -9,7 +9,7 @@ interface ProjectDetailViewProps {
     isPage?: boolean;
 }
 
-const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ token, projectName, onClose, isPage = false }) => {
+const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ token: _token, projectName, onClose, isPage = false }) => {
     const [projectData, setProjectData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -19,10 +19,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ token, projectNam
 
     const fetchProjectDetail = async () => {
         try {
-            const response = await axios.get(
-                `http://127.0.0.1:8000/forecast/project/${encodeURIComponent(projectName)}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const response = await api.get(`/forecast/project/${encodeURIComponent(projectName)}`);
             setProjectData(response.data);
         } catch (err: any) {
             alert('Failed to fetch project detail: ' + (err.response?.data?.detail || err.message));

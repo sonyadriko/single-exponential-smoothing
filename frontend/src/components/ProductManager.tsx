@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Package } from 'lucide-react';
-import axios from 'axios';
+import api from '../api';
 
 interface Product {
     id: number;
@@ -12,16 +12,13 @@ interface ProductManagerProps {
     token: string;
 }
 
-const ProductManager: React.FC<ProductManagerProps> = ({ token }) => {
+const ProductManager: React.FC<ProductManagerProps> = ({ token: _token }) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [newProductName, setNewProductName] = useState('');
-    const [loading, setLoading] = useState(false);
 
     const fetchProducts = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/products', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get('/products');
             setProducts(response.data);
         } catch (err: any) {
             alert('Failed to fetch products: ' + (err.response?.data?.detail || err.message));
@@ -37,11 +34,7 @@ const ProductManager: React.FC<ProductManagerProps> = ({ token }) => {
         if (!newProductName.trim()) return;
 
         try {
-            await axios.post(
-                'http://127.0.0.1:8000/products',
-                { name: newProductName },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.post('/products', { name: newProductName });
             setNewProductName('');
             fetchProducts();
         } catch (err: any) {
@@ -53,9 +46,7 @@ const ProductManager: React.FC<ProductManagerProps> = ({ token }) => {
         if (!confirm('Are you sure you want to delete this product?')) return;
 
         try {
-            await axios.delete(`http://127.0.0.1:8000/products/${productId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/products/${productId}`);
             fetchProducts();
         } catch (err: any) {
             alert('Failed to delete product: ' + (err.response?.data?.detail || err.message));
