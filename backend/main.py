@@ -75,6 +75,7 @@ class ForecastRequest(BaseModel):
     alpha: float
     product_name: Optional[str] = None
     project_name: Optional[str] = None
+    next_period_date: Optional[str] = None
 
 # --- Auth Helpers ---
 def verify_password(plain_password, hashed_password):
@@ -312,6 +313,7 @@ async def create_forecast(request: ForecastRequest, db: Session = Depends(get_db
             alpha=request.alpha,
             product_name=product_name,
             next_period_forecast=next_forecast,
+            next_period_date=request.next_period_date,
             mape=mape,
             calculation_steps={
                 "dates": dates,
@@ -328,7 +330,8 @@ async def create_forecast(request: ForecastRequest, db: Session = Depends(get_db
             "forecasts": forecasts,
             "steps": steps,
             "mape": mape,
-            "next_period_forecast": next_forecast
+            "next_period_forecast": next_forecast,
+            "next_period_date": request.next_period_date
         }
         total_mape += mape
         product_count += 1
@@ -346,7 +349,7 @@ async def get_latest_forecast(db: Session = Depends(get_db), current_user: model
     latest = db.query(models.Forecast).order_by(models.Forecast.created_at.desc()).first()
     if not latest:
         raise HTTPException(status_code=404, detail="No forecast found")
-    
+
     steps = latest.calculation_steps or {}
     return {
         "id": latest.id,
@@ -354,6 +357,7 @@ async def get_latest_forecast(db: Session = Depends(get_db), current_user: model
         "alpha": latest.alpha,
         "product_name": latest.product_name,
         "next_period_forecast": latest.next_period_forecast,
+        "next_period_date": latest.next_period_date,
         "mape": latest.mape,
         "dates": steps.get("dates", []),
         "actuals": steps.get("actuals", []),
@@ -370,6 +374,7 @@ async def get_forecast_history(db: Session = Depends(get_db), current_user: mode
         "alpha": f.alpha,
         "product_name": f.product_name,
         "next_period_forecast": f.next_period_forecast,
+        "next_period_date": f.next_period_date,
         "mape": f.mape
     } for f in forecasts]
 
@@ -504,7 +509,8 @@ async def get_forecast_project(project_name: str, db: Session = Depends(get_db),
             "forecasts": steps.get("forecasts", []),
             "steps": steps.get("steps", []),
             "mape": f.mape,
-            "next_period_forecast": f.next_period_forecast
+            "next_period_forecast": f.next_period_forecast,
+            "next_period_date": f.next_period_date
         }
     
     overall_mape = sum(f.mape for f in forecasts) / len(forecasts) if forecasts else 0

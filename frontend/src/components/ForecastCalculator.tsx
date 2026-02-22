@@ -12,6 +12,7 @@ const ForecastCalculator: React.FC<ForecastCalculatorProps> = ({ token: _token, 
     const [alpha, setAlpha] = useState(0.5);
     const [selectedProduct, setSelectedProduct] = useState<string>('');
     const [projectNameInput, setProjectNameInput] = useState(projectName || '');
+    const [nextPeriodDate, setNextPeriodDate] = useState('');
     const [products] = useState([
         "Soto Ayam", "Nasi Goreng Jawa", "Nasi Bebek Biasa",
         "Nasi Ayam", "Nasi Lele", "Nasi 3T", "Es Teh", "Es Jeruk"
@@ -28,6 +29,9 @@ const ForecastCalculator: React.FC<ForecastCalculatorProps> = ({ token: _token, 
             }
             if (projectNameInput.trim()) {
                 payload.project_name = projectNameInput.trim();
+            }
+            if (nextPeriodDate.trim()) {
+                payload.next_period_date = nextPeriodDate.trim();
             }
 
             const response = await api.post('/forecast', payload);
@@ -48,7 +52,7 @@ const ForecastCalculator: React.FC<ForecastCalculatorProps> = ({ token: _token, 
             </div>
 
             <div className="bg-card border border-border rounded-xl p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div>
                         <label className="text-sm font-medium">Project Name (Optional)</label>
                         <input
@@ -73,6 +77,16 @@ const ForecastCalculator: React.FC<ForecastCalculatorProps> = ({ token: _token, 
                             ))}
                         </select>
                         <p className="text-xs text-muted-foreground mt-1">Leave empty to forecast all products</p>
+                    </div>
+                    <div>
+                        <label className="text-sm font-medium">Next Period Date (Optional)</label>
+                        <input
+                            type="date"
+                            value={nextPeriodDate}
+                            onChange={(e) => setNextPeriodDate(e.target.value)}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 ring-primary outline-none mt-2"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Target date for forecast</p>
                     </div>
                     <div>
                         <label className="text-sm font-medium">Smoothing Factor (Alpha): {alpha}</label>
@@ -167,6 +181,11 @@ const ForecastCalculator: React.FC<ForecastCalculatorProps> = ({ token: _token, 
                                     <div className="text-right">
                                         <p className="text-xs text-muted-foreground">Next Period Forecast</p>
                                         <p className="text-3xl font-bold text-primary">{data.next_period_forecast.toFixed(1)}</p>
+                                        {data.next_period_date && (
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                Target: {new Date(data.next_period_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                                 

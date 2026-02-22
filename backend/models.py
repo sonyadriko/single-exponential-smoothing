@@ -37,7 +37,8 @@ class Forecast(Base):
     alpha = Column(Float)
     product_name = Column(String)
     next_period_forecast = Column(Float)
+    next_period_date = Column(String, nullable=True)
     mape = Column(Float)
     calculation_steps = Column(JSON)
-    
+
     created_by_user = relationship("User", back_populates="forecasts")

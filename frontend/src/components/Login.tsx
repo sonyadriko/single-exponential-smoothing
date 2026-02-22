@@ -23,11 +23,16 @@ const Login: React.FC<LoginProps> = ({ setToken, setUserRole }) => {
         setError(null);
 
         try {
-            const formData = new FormData();
+            // Use URLSearchParams for proper form-urlencoded encoding
+            const formData = new URLSearchParams();
             formData.append('username', username);
             formData.append('password', password);
 
-            const response = await api.post('/token', formData);
+            const response = await api.post('/token', formData, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            });
             const token = response.data.access_token;
 
             setToken(token);
