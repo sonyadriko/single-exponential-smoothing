@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BarChart3, AlertCircle, Loader2, LogOut, Plus, RefreshCw, Save } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 import ForecastChart from './ForecastChart';
 import api from '../api';
@@ -55,18 +56,23 @@ const Dashboard: React.FC<DashboardProps> = ({ userRole, token: _token, onLogout
             await api.post('/sales', newData);
             setShowAddModal(false);
             setRefreshKey(prev => prev + 1); // Trigger re-fetch
+            toast.success('Data berhasil ditambahkan');
         } catch (err: any) {
-            alert('Failed to add data: ' + (err.response?.data?.detail || err.message));
+            toast.error('Gagal menambahkan data', {
+                description: err.response?.data?.detail || err.message
+            });
         }
     };
 
     const handleResetData = async () => {
-        if (!confirm("Are you sure you want to reset all data to the initial May dataset? This cannot be undone.")) return;
         try {
             await api.post('/reset-data', {});
             setRefreshKey(prev => prev + 1);
+            toast.success('Data berhasil di-reset ke dataset awal');
         } catch (err: any) {
-            alert('Failed to reset: ' + err.message);
+            toast.error('Gagal me-reset data', {
+                description: err.response?.data?.detail || err.message
+            });
         }
     };
 

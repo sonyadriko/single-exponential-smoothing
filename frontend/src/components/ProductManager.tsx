@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Package } from 'lucide-react';
+import { toast } from 'sonner';
 import api from '../api';
 
 interface Product {
@@ -21,7 +22,9 @@ const ProductManager: React.FC<ProductManagerProps> = ({ token: _token }) => {
             const response = await api.get('/products');
             setProducts(response.data);
         } catch (err: any) {
-            alert('Failed to fetch products: ' + (err.response?.data?.detail || err.message));
+            toast.error('Gagal memuat produk', {
+                description: err.response?.data?.detail || err.message
+            });
         }
     };
 
@@ -37,19 +40,23 @@ const ProductManager: React.FC<ProductManagerProps> = ({ token: _token }) => {
             await api.post('/products', { name: newProductName });
             setNewProductName('');
             fetchProducts();
+            toast.success('Produk berhasil ditambahkan');
         } catch (err: any) {
-            alert('Failed to add product: ' + (err.response?.data?.detail || err.message));
+            toast.error('Gagal menambahkan produk', {
+                description: err.response?.data?.detail || err.message
+            });
         }
     };
 
     const handleDeleteProduct = async (productId: number) => {
-        if (!confirm('Are you sure you want to delete this product?')) return;
-
         try {
             await api.delete(`/products/${productId}`);
             fetchProducts();
+            toast.success('Produk berhasil dihapus');
         } catch (err: any) {
-            alert('Failed to delete product: ' + (err.response?.data?.detail || err.message));
+            toast.error('Gagal menghapus produk', {
+                description: err.response?.data?.detail || err.message
+            });
         }
     };
 

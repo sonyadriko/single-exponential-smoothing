@@ -1,6 +1,38 @@
-version: '3.8'
-
 services:
+  db:
+    image: mysql:9.0
+    container_name: ses-forecast-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: sales_app
+      MYSQL_USER: ${MYSQL_USER:-salesuser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-salespass}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: ses-forecast-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      UPLOAD_LIMIT: 100M
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
   backend:
     build:
       context: ./backend
@@ -10,8 +42,10 @@ services:
       - "8000:8000"
     environment:
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
-    volumes:
-      - backend-data:/app/data
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER:-salesuser}:${MYSQL_PASSWORD:-salespass}@db:3306/sales_app
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -32,5 +66,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  backend-data:
+  mysql-data:
     driver: local

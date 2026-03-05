@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Calculator, TrendingUp } from 'lucide-react';
+import { toast } from 'sonner';
 import api from '../api';
 
 interface ProjectDetailViewProps {
@@ -22,7 +23,9 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({ token: _token, pr
             const response = await api.get(`/forecast/project/${encodeURIComponent(projectName)}`);
             setProjectData(response.data);
         } catch (err: any) {
-            alert('Failed to fetch project detail: ' + (err.response?.data?.detail || err.message));
+            toast.error('Gagal memuat detail project', {
+                description: err.response?.data?.detail || err.message
+            });
         } finally {
             setLoading(false);
         }

@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException, Depends, status
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
@@ -28,7 +29,7 @@ app.add_middleware(
 )
 
 # --- Security Config ---
-SECRET_KEY = "supersecretkey" # Change in production
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey") # Change in production
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

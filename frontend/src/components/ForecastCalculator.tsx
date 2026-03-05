@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Calculator, Play, TrendingUp } from 'lucide-react';
+import { toast } from 'sonner';
 import api from '../api';
 
 interface ForecastCalculatorProps {
@@ -37,8 +38,13 @@ const ForecastCalculator: React.FC<ForecastCalculatorProps> = ({ token: _token, 
             const response = await api.post('/forecast', payload);
             setResults(response.data);
             onForecastGenerated();
+            toast.success('Forecast berhasil dibuat', {
+                description: 'Perhitungan SES selesai dengan MAPE: ' + response.data.overall_mape.toFixed(2) + '%'
+            });
         } catch (err: any) {
-            alert('Failed to generate forecast: ' + (err.response?.data?.detail || err.message));
+            toast.error('Gagal membuat forecast', {
+                description: err.response?.data?.detail || err.message
+            });
         } finally {
             setLoading(false);
         }

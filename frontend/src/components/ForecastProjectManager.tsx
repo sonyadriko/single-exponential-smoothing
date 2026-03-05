@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FolderOpen, Plus, Trash2, Edit2, Calendar, User, TrendingUp, FileText } from 'lucide-react';
+import { toast } from 'sonner';
 import api from '../api';
 
 interface Project {
@@ -46,25 +47,29 @@ const ForecastProjectManager: React.FC<ForecastProjectManagerProps> = ({ token: 
     };
 
     const handleDeleteProject = async (projectName: string) => {
-        if (!confirm(`Delete project "${projectName}"? This cannot be undone.`)) return;
-        
         try {
             await api.delete(`/forecast/project/${encodeURIComponent(projectName)}`);
             fetchProjects();
+            toast.success('Project berhasil dihapus');
         } catch (err: any) {
-            alert('Failed to delete project: ' + (err.response?.data?.detail || err.message));
+            toast.error('Gagal menghapus project', {
+                description: err.response?.data?.detail || err.message
+            });
         }
     };
 
     const handleRenameProject = async (projectName: string) => {
-        const newName = prompt('Enter new project name:', projectName);
+        const newName = prompt('Masukkan nama project baru:', projectName);
         if (!newName || newName === projectName) return;
 
         try {
             await api.put(`/forecast/project/${encodeURIComponent(projectName)}?new_name=${encodeURIComponent(newName)}`, {});
             fetchProjects();
+            toast.success('Project berhasil di-rename');
         } catch (err: any) {
-            alert('Failed to rename project: ' + (err.response?.data?.detail || err.message));
+            toast.error('Gagal me-rename project', {
+                description: err.response?.data?.detail || err.message
+            });
         }
     };
 

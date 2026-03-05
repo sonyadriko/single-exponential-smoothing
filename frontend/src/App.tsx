@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import Login from './components/Login';
 import AdminDashboard from './components/AdminDashboard';
 import OwnerDashboard from './components/OwnerDashboard';
@@ -56,17 +57,18 @@ function App() {
               )
             }
           />
-          <Route 
-            path="/" 
+          <Route
+            path="/"
             element={
               token ? (
                 <Navigate to={userRole === 'admin' ? '/admin' : '/owner'} replace />
               ) : (
                 <Navigate to="/login" replace />
               )
-            } 
+            }
           />
         </Routes>
+        <Toaster richColors position="top-right" />
       </div>
     </Router>
   );
