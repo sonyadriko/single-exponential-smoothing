@@ -23,6 +23,31 @@
         font-family: 'JetBrains Mono', monospace;
         letter-spacing: 0.1em;
     }
+    .filter-bar {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        align-items: center;
+    }
+    .filter-bar select {
+        background: #1e293b;
+        border: 1px solid #334155;
+        color: #e2e8f0;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+        cursor: pointer;
+    }
+    .filter-bar select:focus {
+        outline: none;
+        border-color: #3b82f6;
+    }
+    .filter-bar label {
+        color: #6b7280;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+    }
 </style>
 {% endblock %}
 
@@ -33,6 +58,28 @@
 </div>
 
 {% if latest_forecasts %}
+<div class="filter-bar">
+    <label>PROJECT:</label>
+    <select id="projectFilter" onchange="filterChart()">
+        <option value="all">All Projects</option>
+        {% for project in projects %}
+        <option value="{{ project.project_name }}">{{ project.project_name }}</option>
+        {% endfor %}
+    </select>
+
+    <label style="margin-left: 1rem;">PRODUCT:</label>
+    <select id="productFilter" onchange="filterChart()">
+        <option value="all">All Products</option>
+        {% set seen_products = [] %}
+        {% for f in latest_forecasts %}
+            {% if f.product_name not in seen_products %}
+                {% set _ = seen_products.append(f.product_name) %}
+        <option value="{{ f.product_name }}">{{ f.product_name }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+</div>
+
 <div class="bg-surface2 rounded-lg p-4">
     <div class="h-80">
         <canvas id="forecastChart"></canvas>
@@ -45,24 +92,46 @@
 
 {% block scripts %}
 {% if latest_forecasts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     Chart.defaults.color = '#6b7280';
     Chart.defaults.font.family = 'JetBrains Mono';
 
     const forecastsData = {{ latest_forecasts | tojson }};
+    let chartInstance = null;
 
-    async function loadChart() {
-        const forecasts = Array.isArray(forecastsData) ? forecastsData : [forecastsData];
-        if (forecasts.length === 0) return;
+    function filterChart() {
+        const projectFilter = document.getElementById('projectFilter').value;
+        const productFilter = document.getElementById('productFilter').value;
+
+        let filtered = forecastsData;
+
+        if (projectFilter !== 'all') {
+            filtered = filtered.filter(f => f.project_name === projectFilter);
+        }
+        if (productFilter !== 'all') {
+            filtered = filtered.filter(f => f.product_name === productFilter);
+        }
+
+        renderChart(filtered);
+    }
+
+    function renderChart(forecasts) {
+        if (!Array.isArray(forecasts) || forecasts.length === 0) {
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+            return;
+        }
 
         const ctx = document.getElementById('forecastChart');
         if (!ctx) return;
 
         const datasets = [];
-        const colors = ['#3b82f6', '#6366f1', '#10b981', '#f59e0b'];
+        const colors = ['#3b82f6', '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
         forecasts.forEach((f, i) => {
-            const steps = f.calculation_steps || f.steps || [];
             const dates = f.dates || [];
             const actuals = f.actuals || [];
             const forecastsArr = f.forecasts || [];
@@ -92,9 +161,13 @@
             }
         });
 
-        const labels = forecasts[0]?.dates || forecasts[0]?.calculation_steps?.map(s => s.period || s.date) || [];
+        const labels = forecasts[0]?.dates || [];
 
-        new Chart(ctx, {
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+
+        chartInstance = new Chart(ctx, {
             type: 'line',
             data: { labels, datasets },
             options: {
@@ -109,7 +182,8 @@
         });
     }
 
-    loadChart();
+    // Initial render
+    filterChart();
 </script>
 {% endif %}
 {% endblock %}

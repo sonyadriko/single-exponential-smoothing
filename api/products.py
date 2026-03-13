@@ -7,7 +7,7 @@ import models
 from database import get_db
 from schemas.products import ProductCreate, ProductOut
 from repositories.product_repository import ProductRepository
-from api.auth import get_current_user, get_admin_user
+from api.auth import get_current_user_or_session, get_admin_user_or_session
 
 router = APIRouter()
 
@@ -15,7 +15,7 @@ router = APIRouter()
 @router.get("", response_model=List[ProductOut])
 async def get_products(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_user_or_session)
 ):
     """Get all products."""
     product_repo = ProductRepository(db)
@@ -26,7 +26,7 @@ async def get_products(
 async def create_product(
     product: ProductCreate,
     db: Session = Depends(get_db),
-    admin: models.User = Depends(get_admin_user)
+    admin: models.User = Depends(get_admin_user_or_session)
 ):
     """Create a new product (admin only)."""
     product_repo = ProductRepository(db)
@@ -42,7 +42,7 @@ async def create_product(
 async def delete_product(
     product_id: int,
     db: Session = Depends(get_db),
-    admin: models.User = Depends(get_admin_user)
+    admin: models.User = Depends(get_admin_user_or_session)
 ):
     """Delete a product by ID (admin only)."""
     product_repo = ProductRepository(db)

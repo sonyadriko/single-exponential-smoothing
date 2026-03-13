@@ -6,7 +6,7 @@ import models
 from database import get_db
 from schemas.sales import SaleCreate, SaleOut
 from repositories.sale_repository import SaleRepository
-from api.auth import get_current_user, get_admin_user
+from api.auth import get_current_user_or_session, get_admin_user_or_session
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ async def get_sales(
     date_from: Optional[str] = Query(None, description="Filter by date from (YYYY-MM-DD)"),
     date_to: Optional[str] = Query(None, description="Filter by date to (YYYY-MM-DD)"),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_user_or_session)
 ):
     """Get all sales records with optional filters."""
     sale_repo = SaleRepository(db)
@@ -37,7 +37,7 @@ async def get_sales(
 async def get_sales_by_product(
     product_name: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_user_or_session)
 ):
     """Get all sales for a specific product."""
     sale_repo = SaleRepository(db)
@@ -49,7 +49,7 @@ async def get_sales_by_product(
 async def add_sale(
     sale: SaleCreate,
     db: Session = Depends(get_db),
-    admin: models.User = Depends(get_admin_user)
+    admin: models.User = Depends(get_admin_user_or_session)
 ):
     """Add a new sale record (admin only)."""
     sale_repo = SaleRepository(db)
@@ -61,7 +61,7 @@ async def add_sale(
 async def delete_sale(
     sale_id: int,
     db: Session = Depends(get_db),
-    admin: models.User = Depends(get_admin_user)
+    admin: models.User = Depends(get_admin_user_or_session)
 ):
     """Delete a sale record by ID (admin only)."""
     sale_repo = SaleRepository(db)

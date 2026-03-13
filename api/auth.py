@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
@@ -6,14 +6,14 @@ from datetime import timedelta
 import models
 from database import get_db
 from schemas.auth import Token, UserResponse, TokenData
-from services.auth_service import verify_password, create_access_token, decode_token
+from services.auth_service import verify_password, create_access_token, decode_token, get_session_user
 from config import get_settings
 from repositories.user_repository import UserRepository
 
 router = APIRouter()
 settings = get_settings()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 
 async def get_current_user(
@@ -40,6 +40,46 @@ async def get_current_user(
 
 async def get_admin_user(current_user: models.User = Depends(get_current_user)) -> models.User:
     """Dependency that ensures the current user is an admin."""
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Not authorized")
+    return current_user
+
+
+async def get_current_user_or_session(
+    request: Request,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+) -> models.User:
+    """Get the currently authenticated user from JWT token or session."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+    )
+
+    # Try JWT token first
+    if token:
+        token_data = decode_token(token)
+        if token_data and token_data.get("username"):
+            user_repo = UserRepository(db)
+            user = user_repo.get_by_username(token_data["username"])
+            if user:
+                return user
+
+    # Fall back to session auth
+    session_user = get_session_user(request)
+    if session_user and session_user.get("username"):
+        user_repo = UserRepository(db)
+        user = user_repo.get_by_username(session_user["username"])
+        if user:
+            return user
+
+    raise credentials_exception
+
+
+async def get_admin_user_or_session(
+    current_user: models.User = Depends(get_current_user_or_session)
+) -> models.User:
+    """Dependency that ensures the current user is an admin (supports session or JWT)."""
     if current_user.role != 'admin':
         raise HTTPException(status_code=403, detail="Not authorized")
     return current_user

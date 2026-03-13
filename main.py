@@ -317,6 +317,7 @@ async def chart(request: Request, db: Session = Depends(get_db)):
 
         latest_dicts.append({
             "id": f.id,
+            "project_name": f.project_name,
             "product_name": f.product_name,
             "next_period_forecast": f.next_period_forecast,
             "next_period_date": f.next_period_date.isoformat() if f.next_period_date else None,
@@ -331,7 +332,8 @@ async def chart(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("chart.html", {
         "request": request,
         "user": user,
-        "latest_forecasts": latest_dicts
+        "latest_forecasts": latest_dicts,
+        "projects": forecast_repo.get_project_summaries()
     })
 
 

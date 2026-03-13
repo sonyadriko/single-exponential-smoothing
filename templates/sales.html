@@ -249,11 +249,8 @@
         if (params.date_to) queryParams.append('date_to', params.date_to);
         const url = '/api/sales' + (queryParams.toString() ? `?${queryParams}` : '');
         try {
-            const response = await fetch(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
-            if (response.ok) {
-                allSales = await response.json();
-                renderTable(allSales);
-            }
+            allSales = await api.get(url);
+            renderTable(allSales);
         } catch (err) {
             console.error('Error loading sales:', err);
         }

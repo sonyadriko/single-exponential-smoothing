@@ -16,7 +16,7 @@ from schemas.forecasts import (
 )
 from repositories.forecast_repository import ForecastRepository
 from repositories.sale_repository import SaleRepository
-from api.auth import get_current_user, get_admin_user
+from api.auth import get_current_user_or_session, get_admin_user_or_session
 from services.forecast_service import (
     calculate_ses_with_steps,
     calculate_next_period_forecast
@@ -29,7 +29,7 @@ router = APIRouter()
 async def create_forecast(
     request: ForecastRequest,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_admin_user)
+    current_user: models.User = Depends(get_admin_user_or_session)
 ):
     """Create a forecast using Single Exponential Smoothing (admin only)."""
     sale_repo = SaleRepository(db)
@@ -112,7 +112,7 @@ async def create_forecast(
 @router.get("/latest")
 async def get_latest_forecast(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_user_or_session)
 ):
     """Get the most recent forecast."""
     forecast_repo = ForecastRepository(db)
@@ -140,7 +140,7 @@ async def get_latest_forecast(
 @router.get("/history", response_model=list[ForecastOut])
 async def get_forecast_history(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_user_or_session)
 ):
     """Get all forecasts history."""
     forecast_repo = ForecastRepository(db)
@@ -159,7 +159,7 @@ async def get_forecast_history(
 @router.get("/projects", response_model=list[ForecastProjectInfo])
 async def get_forecast_projects(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_admin_user)
+    current_user: models.User = Depends(get_admin_user_or_session)
 ):
     """Get all forecast projects (admin only)."""
     forecast_repo = ForecastRepository(db)
@@ -170,7 +170,7 @@ async def get_forecast_projects(
 async def get_forecast_project(
     project_name: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_user_or_session)
 ):
     """Get details of a specific forecast project."""
     forecast_repo = ForecastRepository(db)
@@ -208,7 +208,7 @@ async def update_forecast_project(
     project_name: str,
     new_name: str = Body(..., embed=True),
     db: Session = Depends(get_db),
-    admin: models.User = Depends(get_admin_user)
+    admin: models.User = Depends(get_admin_user_or_session)
 ):
     """Rename a forecast project (admin only)."""
     forecast_repo = ForecastRepository(db)
@@ -221,7 +221,7 @@ async def update_forecast_project(
 async def delete_forecast_project(
     project_name: str,
     db: Session = Depends(get_db),
-    admin: models.User = Depends(get_admin_user)
+    admin: models.User = Depends(get_admin_user_or_session)
 ):
     """Delete a forecast project (admin only)."""
     forecast_repo = ForecastRepository(db)
@@ -234,7 +234,7 @@ async def delete_forecast_project(
 @router.post("/reset-data")
 async def reset_data(
     db: Session = Depends(get_db),
-    admin: models.User = Depends(get_admin_user)
+    admin: models.User = Depends(get_admin_user_or_session)
 ):
     """Reset sales and forecasts data, then reseed May data (admin only)."""
     from services.seed_service import SeedService
