@@ -8,19 +8,24 @@ This is a full-stack **Single Exponential Smoothing (SES) Forecasting Applicatio
 
 ## Architecture
 
-**Frontend:** React 19.2 + TypeScript + Vite + Tailwind CSS
 **Backend:** Python FastAPI + SQLAlchemy + SQLite
-**API Communication:** Axios with JWT authentication
+**Frontend:** HTML templates with Tailwind CSS (served via FastAPI)
 
-The project follows a traditional monorepo structure with separate `frontend/` and `backend/` directories.
+### Project Structure
 
-### Backend Structure (FastAPI)
-
-- `main.py` - Single-file API containing all routes, authentication, and SES calculation logic
+- `main.py` - Main FastAPI application with all routes, authentication, and SES calculation logic
 - `models.py` - SQLAlchemy ORM models (User, Product, Sale, Forecast)
 - `database.py` - SQLite database configuration and session management
-- `test_logic.py` - Unit tests for SES calculation formulas
+- `config.py` - Application configuration
+- `migrate_db.py` - Database migration utilities
 - `sales_app.db` - SQLite database (auto-created on first run)
+- `api/` - API route modules (auth, forecasts, products, sales)
+- `repositories/` - Data access layer
+- `schemas/` - Pydantic schemas for request/response validation
+- `services/` - Business logic layer
+- `static/` - Static assets (CSS, JS)
+- `templates/` - HTML templates for web UI
+- `tests/` - Test files
 
 **Key endpoints:**
 - Auth: `/token` (login), `/users/me` (current user)
@@ -29,49 +34,33 @@ The project follows a traditional monorepo structure with separate `frontend/` a
 - Forecasts: `POST /forecast`, `GET /forecast/latest`, `GET /forecasts/history`
 - Forecast Projects: `/forecast/projects`, `/forecast/project/{project_name}`
 - Admin-only: User/forecast project management, data reset (`/reset-data`)
-
-### Frontend Structure (React)
-
-- `src/App.tsx` - Main routing with React Router (protected routes for `/admin` and `/owner`)
-- `src/components/` - All UI components (no pages directory)
-  - `Login.tsx` - Authentication form
-  - `AdminDashboard.tsx` - Admin interface (user/product/sales management)
-  - `OwnerDashboard.tsx` - Standard user dashboard (forecast viewing)
-  - `ForecastCalculator.tsx` - Interactive SES calculation with adjustable alpha
-  - `ForecastChart.tsx` - Recharts visualization
-  - `ForecastProjectManager.tsx` - CRUD for forecast projects
-  - `SalesInput.tsx` - Historical sales data entry
-  - `ProductManager.tsx` - Product catalog management
-
-**API base URL:** Hardcoded as `http://127.0.0.1:8000` throughout components
+- Web UI: `/`, `/login`, `/admin`, `/owner`, `/sales`
 
 ## Development Commands
 
-### Frontend (from `/frontend`)
 ```bash
-npm install          # Install dependencies
-npm run dev          # Start dev server (Vite on port 5173)
-npm run build        # TypeScript check + production build
-npm run lint         # Run ESLint
-npm run preview      # Preview production build
-```
+# Install dependencies
+pip install -r requirements.txt
 
-### Backend (from `/backend`)
-```bash
-pip install -r requirements.txt    # Install Python dependencies
-uvicorn main:app --reload          # Start dev server (port 8000)
-python test_logic.py               # Run SES calculation unit tests
+# Start dev server (port 8000)
+uvicorn main:app --reload
+
+# Run tests
+pytest tests/
+
+# Database migration
+python migrate_db.py
 ```
 
 ### Default Test Accounts
 - **Admin:** `admin` / `admin123` (full access)
 - **Owner:** `owner` / `owner123` (view forecasts, no admin operations)
 
-These are auto-created on first server start via the `startup_event()` handler in `main.py:144`.
+These are auto-created on first server start via the `startup_event()` handler in `main.py`.
 
 ## Core Algorithm: Single Exponential Smoothing (SES)
 
-Located in `backend/main.py:220` (`calculate_ses_with_steps` function).
+Located in `main.py` (`calculate_ses_with_steps` function in services/forecast_service.py).
 
 **Formula:** `F(t+1) = alpha × A(t) + (1-alpha) × F(t)`
 - `F(t+1)` = forecast for next period
@@ -106,16 +95,10 @@ The function returns detailed step-by-step calculations including period, date, 
 
 5. **Forecast Projects:** A "project" is a collection of forecasts (one per product) created at the same time with the same alpha parameter, identified by a `project_name`.
 
-## Frontend Configuration
-
-- **Vite:** `vite.config.ts` with `@vitejs/plugin-react`
-- **Tailwind:** `tailwind.config.js` with custom theme colors
-- **TypeScript:** `tsconfig.json` (via Vite plugin)
-- **ESLint:** `eslint.config.js` with React Hooks and React Refresh plugins
-
 ## Production Considerations
 
-- `SECRET_KEY` is hardcoded in `main.py:31` - should be environment variable
-- CORS allows all origins - should restrict to frontend domain
-- SQLite suitable for development; consider PostgreSQL for production
+- `SECRET_KEY` should be set via environment variable (see `.env.example`)
+- CORS allows all origins - should restrict in production
+- SQLite suitable for development; consider PostgreSQL or MySQL for production
 - No HTTPS enforcement - add in production deployment
+- Use Docker with the provided `Dockerfile` and `docker-compose.yml` for containerized deployment

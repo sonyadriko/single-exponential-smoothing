@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}Forecast - Depot Jawara{% endblock %}
+
+{% set active_page = 'forecast' %}
+
+{% block head %}
+<style>
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .section-title h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+    }
+    .section-title .subtitle {
+        font-size: 0.75rem;
+        color: #6b7280;
+        font-family: 'JetBrains Mono', monospace;
+        letter-spacing: 0.1em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="section-title">
+    <h2>Forecast</h2>
+    <span class="subtitle">// CALCULATE & SAVE</span>
+</div>
+
+<div class="bg-surface2 rounded-lg p-6 mb-6">
+    <div class="grid grid-cols-2 gap-6 mb-6">
+        <div>
+            <label class="block text-sm text-gray-400 mb-2 font-mono">
+                Alpha: <span id="alphaValue" class="text-white">0.3</span>
+            </label>
+            <input type="range" id="alphaSlider" min="0.1" max="0.9" step="0.1" value="0.3"
+                class="w-full h-2 bg-surface rounded-lg appearance-none cursor-pointer">
+        </div>
+        <div>
+            <label class="block text-sm text-gray-400 mb-2 font-mono">Product</label>
+            <select id="productSelect" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
+                <option value="all">All Products</option>
+                {% for product in products %}
+                <option value="{{ product.name }}">{{ product.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="grid grid-cols-3 gap-6 mb-6">
+        <div>
+            <label class="block text-sm text-gray-400 mb-2 font-mono">Start Date</label>
+            <input type="date" id="startDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
+            <p class="text-xs text-gray-500 mt-1 font-mono">Filter data dari tanggal ini</p>
+        </div>
+        <div>
+            <label class="block text-sm text-gray-400 mb-2 font-mono">End Date</label>
+            <input type="date" id="endDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
+            <p class="text-xs text-gray-500 mt-1 font-mono">Filter data sampai tanggal ini</p>
+        </div>
+        <div>
+            <label class="block text-sm text-gray-400 mb-2 font-mono">Forecast Date</label>
+            <input type="date" id="nextPeriodDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
+            <p class="text-xs text-gray-500 mt-1 font-mono">Tanggal hasil forecast</p>
+        </div>
+    </div>
+    <div class="flex gap-4">
+        <button onclick="calculateForecast()" class="btn-primary px-6 py-2 rounded">Calculate Forecast</button>
+        <button onclick="resetFilters()" class="px-4 py-2 rounded text-sm border border-border text-gray-400 hover:text-white">Reset Filters</button>
+        <button id="saveProjectBtn" onclick="showSaveProjectModal()" class="hidden px-4 py-2 rounded text-sm bg-emerald-600 text-white hover:bg-emerald-500">Save Project</button>
+    </div>
+</div>
+
+<div id="resultsSection" class="hidden">
+    <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-surface2 rounded-lg p-4 text-center">
+            <p class="text-xs text-gray-500 font-mono mb-1">FORECAST</p>
+            <p id="nextPeriodForecast" class="text-2xl font-bold text-white">-</p>
+        </div>
+        <div class="bg-surface2 rounded-lg p-4 text-center">
+            <p class="text-xs text-gray-500 font-mono mb-1">DATE</p>
+            <p id="forecastDate" class="text-lg font-bold text-blue-400">-</p>
+        </div>
+        <div class="bg-surface2 rounded-lg p-4 text-center">
+            <p class="text-xs text-gray-500 font-mono mb-1">ALPHA</p>
+            <p id="alphaUsed" class="text-2xl font-bold text-blue-400">-</p>
+        </div>
+        <div class="bg-surface2 rounded-lg p-4 text-center">
+            <p class="text-xs text-gray-500 font-mono mb-1">MAPE</p>
+            <p id="mapeValue" class="text-2xl font-bold">-</p>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 gap-6">
+        <div class="bg-surface2 rounded-lg p-4">
+            <h4 class="text-sm font-medium text-white mb-3 font-mono">Chart</h4>
+            <div class="h-64"><canvas id="forecastChart"></canvas></div>
+        </div>
+        <div class="bg-surface2 rounded-lg p-4">
+            <h4 class="text-sm font-medium text-white mb-3 font-mono">Steps</h4>
+            <div class="max-h-64 overflow-y-auto">
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-surface2">
+                        <tr>
+                            <th class="px-2 py-1 text-left text-indigo-400 font-mono text-xs">Period</th>
+                            <th class="px-2 py-1 text-left text-indigo-400 font-mono text-xs">Actual</th>
+                            <th class="px-2 py-1 text-left text-indigo-400 font-mono text-xs">Forecast</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calculationStepsBody" class="text-gray-300"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Save Project Modal -->
+<div id="saveProjectModal" class="hidden fixed inset-0 bg-black/70 items-center justify-center z-50">
+    <div class="bg-surface rounded-lg p-6 max-w-sm">
+        <h3 class="text-white font-mono mb-4">Save Project</h3>
+        <input type="text" id="projectName" class="form-input w-full px-4 py-2 rounded font-mono text-sm mb-4" placeholder="Project name...">
+        <div class="flex justify-end gap-3">
+            <button onclick="closeSaveProjectModal()" class="btn-secondary px-4 py-2 rounded text-sm">Cancel</button>
+            <button onclick="saveProject()" class="px-4 py-2 rounded text-sm bg-emerald-600 text-white">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="hidden fixed inset-0 bg-black/70 items-center justify-center z-50">
+    <div class="bg-surface rounded-lg p-4 flex items-center gap-3">
+        <svg class="animate-spin h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="text-gray-300 font-mono text-sm">Calculating...</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/api.js"></script>
+<script>
+    document.getElementById('alphaSlider')?.addEventListener('input', (e) => {
+        document.getElementById('alphaValue').textContent = e.target.value;
+    });
+
+    // Initialize dates
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (document.getElementById('nextPeriodDate')) {
+        document.getElementById('nextPeriodDate').value = tomorrow.toISOString().split('T')[0];
+    }
+
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    if (document.getElementById('startDate')) {
+        document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+    }
+    if (document.getElementById('endDate')) {
+        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+    }
+
+    let currentForecastData = null;
+    let forecastChart = null;
+
+    function resetFilters() {
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        const tomorrow = new Date();
+        tomorrow.setDate(today.getDate() + 1);
+        if (document.getElementById('startDate')) {
+            document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+        }
+        if (document.getElementById('endDate')) {
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        }
+        if (document.getElementById('nextPeriodDate')) {
+            document.getElementById('nextPeriodDate').value = tomorrow.toISOString().split('T')[0];
+        }
+    }
+
+    async function calculateForecast() {
+        const alpha = parseFloat(document.getElementById('alphaSlider').value);
+        const product = document.getElementById('productSelect').value;
+        const nextPeriodDate = document.getElementById('nextPeriodDate').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        if (!nextPeriodDate) {
+            alert('Pilih tanggal forecast dulu');
+            return;
+        }
+
+        document.getElementById('loadingSpinner').classList.remove('hidden');
+        document.getElementById('loadingSpinner').classList.add('flex');
+        try {
+            const response = await api.post('/api/forecast', {
+                alpha,
+                product_name: product === 'all' ? null : product,
+                next_period_date: nextPeriodDate,
+                start_date: startDate || null,
+                end_date: endDate || null
+            });
+            currentForecastData = response;
+            displayForecastResults(response);
+        } catch (err) {
+            alert('Error: ' + err.message);
+        } finally {
+            document.getElementById('loadingSpinner').classList.add('hidden');
+        }
+    }
+
+    function displayForecastResults(data) {
+        let results = [];
+        if (data.results) {
+            results = Object.values(data.results);
+        } else if (Array.isArray(data)) {
+            results = data;
+        } else {
+            results = [data];
+        }
+        if (results.length === 0) return;
+
+        const first = results[0];
+        const avgMape = data.overall_mape || results.reduce((s, f) => s + (f.mape || 0), 0) / results.length;
+
+        document.getElementById('nextPeriodForecast').textContent = Math.round(first.next_period_forecast * 10) / 10;
+        document.getElementById('forecastDate').textContent = first.next_period_date || '-';
+        document.getElementById('alphaUsed').textContent = first.alpha || data.alpha || 0.3;
+        const mapeEl = document.getElementById('mapeValue');
+        mapeEl.textContent = Math.round(avgMape * 10) / 10 + '%';
+        mapeEl.className = 'text-2xl font-bold ' + (avgMape < 10 ? 'text-emerald-400' : avgMape < 20 ? 'text-amber-400' : 'text-red-500');
+
+        const tbody = document.getElementById('calculationStepsBody');
+        tbody.innerHTML = '';
+        results.forEach(f => {
+            const steps = f.steps || [];
+            const dates = f.dates || [];
+            const actuals = f.actuals || [];
+            const forecastsArr = f.forecasts || [];
+
+            for (let i = 0; i < dates.length; i++) {
+                tbody.innerHTML += `<tr class="border-b border-border">
+                    <td class="px-2 py-1 font-mono text-xs">${dates[i]}</td>
+                    <td class="px-2 py-1">${actuals[i]}</td>
+                    <td class="px-2 py-1 text-blue-400">${Math.round(forecastsArr[i] * 10) / 10}</td>
+                </tr>`;
+            }
+        });
+
+        renderForecastChart(results);
+        document.getElementById('resultsSection').classList.remove('hidden');
+        document.getElementById('saveProjectBtn').classList.remove('hidden');
+    }
+
+    function renderForecastChart(forecasts) {
+        const ctx = document.getElementById('forecastChart')?.getContext('2d');
+        if (!ctx) return;
+        if (forecastChart) forecastChart.destroy();
+
+        const datasets = [];
+        const colors = ['#3b82f6', '#6366f1', '#10b981', '#f59e0b'];
+
+        forecasts.forEach((f, i) => {
+            const color = colors[i % colors.length];
+            datasets.push({
+                label: f.product_name + ' - Actual',
+                data: f.actuals || [],
+                borderColor: color,
+                backgroundColor: color + '30',
+                borderWidth: 2,
+                pointRadius: 3,
+                tension: 0.1
+            });
+            datasets.push({
+                label: f.product_name + ' - Forecast',
+                data: f.forecasts || [],
+                borderColor: color,
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                pointRadius: 2,
+                pointStyle: 'triangle',
+                tension: 0.1
+            });
+        });
+
+        const labels = forecasts[0]?.dates || [];
+
+        Chart.defaults.color = '#6b7280';
+        Chart.defaults.font.family = 'JetBrains Mono';
+        forecastChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 10 } } } },
+                scales: {
+                    x: { grid: { color: '#334155' }, ticks: { color: '#64748b' } },
+                    y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#64748b' } }
+                }
+            }
+        });
+    }
+
+    function showSaveProjectModal() {
+        if (!currentForecastData) return;
+        document.getElementById('projectName').value = 'Forecast ' + new Date().toISOString().split('T')[0];
+        document.getElementById('saveProjectModal').classList.remove('hidden');
+        document.getElementById('saveProjectModal').classList.add('flex');
+    }
+
+    function closeSaveProjectModal() {
+        document.getElementById('saveProjectModal').classList.add('hidden');
+    }
+
+    async function saveProject() {
+        const name = document.getElementById('projectName').value;
+        if (!name) return;
+        const results = Array.isArray(currentForecastData) ? currentForecastData : [currentForecastData];
+        try {
+            for (const f of results) {
+                await api.put(`/forecast/project/${f.project_name || 'default'}`, { new_name: name });
+            }
+            alert('Project saved!');
+            closeSaveProjectModal();
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+</script>
+{% endblock %}

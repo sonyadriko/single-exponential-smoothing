@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Chart - Depot Jawara{% endblock %}
+
+{% set active_page = 'chart' %}
+
+{% block head %}
+<style>
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .section-title h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+    }
+    .section-title .subtitle {
+        font-size: 0.75rem;
+        color: #6b7280;
+        font-family: 'JetBrains Mono', monospace;
+        letter-spacing: 0.1em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="section-title">
+    <h2>Forecast Chart</h2>
+    <span class="subtitle">// VISUALIZATION</span>
+</div>
+
+{% if latest_forecasts %}
+<div class="bg-surface2 rounded-lg p-4">
+    <div class="h-80">
+        <canvas id="forecastChart"></canvas>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-12 text-gray-500 font-mono">// No data to display</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if latest_forecasts %}
+<script>
+    Chart.defaults.color = '#6b7280';
+    Chart.defaults.font.family = 'JetBrains Mono';
+
+    const forecastsData = {{ latest_forecasts | tojson }};
+
+    async function loadChart() {
+        const forecasts = Array.isArray(forecastsData) ? forecastsData : [forecastsData];
+        if (forecasts.length === 0) return;
+
+        const ctx = document.getElementById('forecastChart');
+        if (!ctx) return;
+
+        const datasets = [];
+        const colors = ['#3b82f6', '#6366f1', '#10b981', '#f59e0b'];
+
+        forecasts.forEach((f, i) => {
+            const steps = f.calculation_steps || f.steps || [];
+            const dates = f.dates || [];
+            const actuals = f.actuals || [];
+            const forecastsArr = f.forecasts || [];
+
+            if (dates.length > 0 && actuals.length > 0) {
+                const color = colors[i % colors.length];
+                datasets.push({
+                    label: f.product_name + ' - Actual',
+                    data: actuals,
+                    borderColor: color,
+                    backgroundColor: color + '30',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    tension: 0.1
+                });
+                datasets.push({
+                    label: f.product_name + ' - Forecast',
+                    data: forecastsArr,
+                    borderColor: color,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 3,
+                    pointStyle: 'triangle',
+                    tension: 0.1
+                });
+            }
+        });
+
+        const labels = forecasts[0]?.dates || forecasts[0]?.calculation_steps?.map(s => s.period || s.date) || [];
+
+        new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 11 } } } },
+                scales: {
+                    x: { grid: { color: '#334155' }, ticks: { color: '#64748b' } },
+                    y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#64748b' } }
+                }
+            }
+        });
+    }
+
+    loadChart();
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}Sales - Depot Jawara{% endblock %}
+
+{% set active_page = 'sales' %}
+
+{% block head %}
+<style>
+    .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+    .section-title h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+    }
+    .section-title .subtitle {
+        font-size: 0.75rem;
+        color: #6b7280;
+        font-family: 'JetBrains Mono', monospace;
+        letter-spacing: 0.1em;
+    }
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-content {
+        background: #1e293b;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        width: 100%;
+        max-width: 400px;
+        border: 1px solid #334155;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .modal-header h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: white;
+    }
+    .modal-close {
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        font-size: 1.5rem;
+        line-height: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="section-title">
+    <h2>Sales</h2>
+    <button onclick="openAddSaleModal()" class="btn-primary px-4 py-2 rounded text-sm font-mono">+ Add Sale</button>
+</div>
+
+<!-- Search & Filter Bar -->
+<div class="bg-surface2 rounded-lg p-4 mb-4">
+    <div class="flex flex-wrap gap-4 items-end">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-xs text-gray-400 font-mono mb-1">🔍 Search Product</label>
+            <input type="text" id="searchProduct" placeholder="Type product name..."
+                class="form-input w-full px-3 py-2 rounded font-mono text-sm">
+        </div>
+        <div>
+            <label class="block text-xs text-gray-400 font-mono mb-1">From</label>
+            <input type="date" id="dateFrom" class="form-input px-3 py-2 rounded font-mono text-sm">
+        </div>
+        <div>
+            <label class="block text-xs text-gray-400 font-mono mb-1">To</label>
+            <input type="date" id="dateTo" class="form-input px-3 py-2 rounded font-mono text-sm">
+        </div>
+        <div class="flex gap-2">
+            <button onclick="applyFilters()" class="btn-primary px-4 py-2 rounded text-sm font-mono">Apply</button>
+            <button onclick="clearFilters()" class="px-4 py-2 rounded text-sm font-mono border border-border text-gray-400 hover:text-white">Clear</button>
+        </div>
+    </div>
+    <div class="flex gap-2 mt-3">
+        <button onclick="quickFilter('all')" class="quick-filter-btn px-3 py-1 text-xs border border-border rounded hover:border-blue-400 font-mono text-blue-400" data-filter="all">All</button>
+        <button onclick="quickFilter('this_month')" class="quick-filter-btn px-3 py-1 text-xs border border-border rounded hover:border-blue-400 font-mono text-gray-500" data-filter="this_month">This Month</button>
+        <button onclick="quickFilter('last_month')" class="quick-filter-btn px-3 py-1 text-xs border border-border rounded hover:border-blue-400 font-mono text-gray-500" data-filter="last_month">Last Month</button>
+    </div>
+</div>
+
+<!-- Sales Table -->
+<div class="bg-surface rounded-lg overflow-hidden">
+    <table class="data-table w-full">
+        <thead>
+            <tr>
+                <th class="px-4 py-3 text-left text-emerald-400 font-mono">Date</th>
+                <th class="px-4 py-3 text-left text-emerald-400 font-mono">Product</th>
+                <th class="px-4 py-3 text-right text-emerald-400 font-mono">Qty</th>
+                <th class="px-4 py-3 text-right text-emerald-400 font-mono">Action</th>
+            </tr>
+        </thead>
+        <tbody id="salesTableBody" class="text-gray-300">
+            {% for sale in sales %}
+            <tr data-sale-id="{{ sale.id }}" data-sale-date="{{ sale.date }}">
+                <td class="px-4 py-3 font-mono text-sm">{{ sale.date }}</td>
+                <td class="px-4 py-3">{{ sale.product_name }}</td>
+                <td class="px-4 py-3 text-right">
+                    <span class="badge px-2 py-1 rounded text-emerald-400 font-mono">{{ sale.qty }}</span>
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <button onclick="deleteSale({{ sale.id }})" class="text-red-400 hover:text-red-300 text-sm">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not sales %}
+            <tr>
+                <td colspan="4" class="px-4 py-8 text-center text-gray-500 font-mono">// No sales data</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Sale Modal -->
+<div id="addSaleModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Sale</h3>
+            <button onclick="closeAddSaleModal()" class="modal-close">&times;</button>
+        </div>
+        <form id="addSaleForm" class="space-y-4">
+            <div>
+                <label class="block text-xs text-gray-400 font-mono mb-1">Date</label>
+                <input type="date" id="saleDate" name="date" required class="form-input w-full px-3 py-2 rounded font-mono text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 font-mono mb-1">Product</label>
+                <select id="saleProduct" name="product_name" required class="form-input w-full px-3 py-2 rounded font-mono text-sm">
+                    <option value="">Select product...</option>
+                    {% for product in products %}
+                    <option value="{{ product.name }}">{{ product.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 font-mono mb-1">Quantity</label>
+                <input type="number" id="saleQty" name="qty" min="1" required class="form-input w-full px-3 py-2 rounded font-mono text-sm" placeholder="Qty">
+            </div>
+            <div id="addSaleMessage" class="text-sm font-mono hidden"></div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="closeAddSaleModal()" class="btn-secondary px-4 py-2 rounded text-sm">Cancel</button>
+                <button type="submit" class="btn-primary px-4 py-2 rounded text-sm">Add Sale</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Sale Modal -->
+<div id="deleteSaleModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Delete Sale</h3>
+            <button onclick="closeDeleteSaleModal()" class="modal-close">&times;</button>
+        </div>
+        <p class="text-gray-400 mb-4">Delete this sale record?</p>
+        <div class="flex justify-end gap-3">
+            <button onclick="closeDeleteSaleModal()" class="btn-secondary px-4 py-2 rounded text-sm">Cancel</button>
+            <button onclick="confirmDeleteSale()" class="px-4 py-2 rounded text-sm bg-red-600 text-white hover:bg-red-700">Delete</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/api.js"></script>
+<script>
+    const products = [
+        {% for product in products %}
+        { "id": {{ product.id }}, "name": "{{ product.name }}" }{{ "," if not loop.last else "" }}
+        {% endfor %}
+    ];
+    let allSales = [
+        {% for sale in sales %}
+        { "id": {{ sale.id }}, "date": "{{ sale.date }}", "product_name": "{{ sale.product_name }}", "qty": {{ sale.qty }} }{{ "," if not loop.last else "" }}
+        {% endfor %}
+    ];
+
+    const today = new Date().toISOString().split('T')[0];
+    const saleDateInput = document.getElementById('saleDate');
+    if (saleDateInput) saleDateInput.value = today;
+
+    function openAddSaleModal() {
+        document.getElementById('addSaleModal').classList.remove('hidden');
+        if (saleDateInput) saleDateInput.value = new Date().toISOString().split('T')[0];
+        document.getElementById('saleProduct').value = '';
+        document.getElementById('saleQty').value = '';
+        document.getElementById('addSaleMessage').classList.add('hidden');
+    }
+
+    function closeAddSaleModal() {
+        document.getElementById('addSaleModal').classList.add('hidden');
+    }
+
+    document.getElementById('addSaleModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'addSaleModal') closeAddSaleModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeAddSaleModal();
+            closeDeleteSaleModal();
+        }
+    });
+
+    document.getElementById('addSaleForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+            date: document.getElementById('saleDate').value,
+            product_name: document.getElementById('saleProduct').value,
+            qty: parseInt(document.getElementById('saleQty').value)
+        };
+        const msg = document.getElementById('addSaleMessage');
+        try {
+            await api.post('/api/sales', data);
+            msg.textContent = '// Sale added successfully';
+            msg.className = 'text-sm font-mono text-emerald-400';
+            msg.classList.remove('hidden');
+            setTimeout(() => { closeAddSaleModal(); loadSales(); }, 500);
+        } catch (err) {
+            msg.textContent = '// Error: ' + err.message;
+            msg.className = 'text-sm font-mono text-red-400';
+            msg.classList.remove('hidden');
+        }
+    });
+
+    async function loadSales(params = {}) {
+        const queryParams = new URLSearchParams();
+        if (params.product_name) queryParams.append('product_name', params.product_name);
+        if (params.date_from) queryParams.append('date_from', params.date_from);
+        if (params.date_to) queryParams.append('date_to', params.date_to);
+        const url = '/api/sales' + (queryParams.toString() ? `?${queryParams}` : '');
+        try {
+            const response = await fetch(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+            if (response.ok) {
+                allSales = await response.json();
+                renderTable(allSales);
+            }
+        } catch (err) {
+            console.error('Error loading sales:', err);
+        }
+    }
+
+    function renderTable(sales) {
+        const tbody = document.getElementById('salesTableBody');
+        if (!sales || sales.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 font-mono">// No sales data</td></tr>';
+            return;
+        }
+        tbody.innerHTML = sales.map(sale => `
+            <tr data-sale-id="${sale.id}" data-sale-date="${sale.date}">
+                <td class="px-4 py-3 font-mono text-sm">${sale.date}</td>
+                <td class="px-4 py-3">${sale.product_name}</td>
+                <td class="px-4 py-3 text-right">
+                    <span class="badge px-2 py-1 rounded text-emerald-400 font-mono">${sale.qty}</span>
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <button onclick="deleteSale(${sale.id})" class="text-red-400 hover:text-red-300 text-sm">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function applyFilters() {
+        const productName = document.getElementById('searchProduct').value.trim();
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        document.querySelectorAll('.quick-filter-btn').forEach(b => {
+            b.classList.remove('text-blue-400'); b.classList.add('text-gray-500');
+        });
+        loadSales({ product_name: productName || undefined, date_from: dateFrom || undefined, date_to: dateTo || undefined });
+    }
+
+    function clearFilters() {
+        document.getElementById('searchProduct').value = '';
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+        document.querySelectorAll('.quick-filter-btn').forEach(b => {
+            b.classList.remove('text-blue-400'); b.classList.add('text-gray-500');
+        });
+        document.querySelector('[data-filter="all"]')?.classList.add('text-blue-400');
+        document.querySelector('[data-filter="all"]')?.classList.remove('text-gray-500');
+        loadSales();
+    }
+
+    function quickFilter(filter) {
+        document.querySelectorAll('.quick-filter-btn').forEach(b => {
+            b.classList.remove('text-blue-400'); b.classList.add('text-gray-500');
+        });
+        document.querySelector(`[data-filter="${filter}"]`)?.classList.add('text-blue-400');
+        document.querySelector(`[data-filter="${filter}"]`)?.classList.remove('text-gray-500');
+        document.getElementById('searchProduct').value = '';
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+
+        const now = new Date();
+        let params = {};
+        if (filter === 'this_month') {
+            const start = new Date(now.getFullYear(), now.getMonth(), 1);
+            params.date_from = start.toISOString().split('T')[0];
+            params.date_to = now.toISOString().split('T')[0];
+        } else if (filter === 'last_month') {
+            const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const end = new Date(now.getFullYear(), now.getMonth(), 0);
+            params.date_from = start.toISOString().split('T')[0];
+            params.date_to = end.toISOString().split('T')[0];
+        }
+        loadSales(params);
+    }
+
+    document.getElementById('searchProduct')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); applyFilters(); }
+    });
+
+    let saleIdToDelete = null;
+    function deleteSale(id) {
+        saleIdToDelete = id;
+        document.getElementById('deleteSaleModal').classList.remove('hidden');
+    }
+    function closeDeleteSaleModal() {
+        document.getElementById('deleteSaleModal').classList.add('hidden');
+        saleIdToDelete = null;
+    }
+    document.getElementById('deleteSaleModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'deleteSaleModal') closeDeleteSaleModal();
+    });
+    async function confirmDeleteSale() {
+        if (!saleIdToDelete) return;
+        try {
+            await api.delete(`/api/sales/${saleIdToDelete}`);
+            closeDeleteSaleModal();
+            loadSales();
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+</script>
+{% endblock %}

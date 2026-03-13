@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Depot Jawara SES</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Archivo', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        bg: '#0f172a',
+                        surface: '#1e293b',
+                        blue: {
+                            400: '#3b82f6',
+                            500: '#2563eb',
+                            600: '#1d4ed8',
+                        },
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'scan': 'scan 4s linear infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 20px rgba(34, 211, 211, 0.3)' },
+                            '50%': { boxShadow: '0 0 40px rgba(34, 211, 211, 0.6)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        scan: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' },
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0f172a;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Animated grid background */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(rgba(59, 130, 246, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(60px); }
+        }
+
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #3b82f6;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        /* Login card */
+        .login-card {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 2px solid #334155;
+            box-shadow:
+                0 0 60px rgba(59, 130, 246, 0.15),
+                6px 6px 0 #3b82f6;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            animation: scanLine 3s linear infinite;
+        }
+
+        @keyframes scanLine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Input styling */
+        .brutal-input {
+            background: #0f172a;
+            border: 2px solid #334155;
+            color: #f0f0f0;
+            transition: all 0.3s ease;
+        }
+        .brutal-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 0 20px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Button styling */
+        .brutal-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #0f172a;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: none;
+            box-shadow: 0 4px 0 #1d4ed8, 0 0 30px rgba(59, 130, 246, 0.4);
+            transition: all 0.2s ease;
+        }
+        .brutal-btn:hover {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #1d4ed8, 0 0 40px rgba(59, 130, 246, 0.6);
+        }
+        .brutal-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #1d4ed8;
+        }
+
+        /* Error alert */
+        .error-alert {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Glowing accent */
+        .glow-accent {
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Decorative elements */
+        .corner-accent {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #3b82f6;
+        }
+        .corner-accent.tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+        .corner-accent.tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+        .corner-accent.bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+        .corner-accent.br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+        /* Default credentials box */
+        .credentials-box {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px dashed rgba(59, 130, 246, 0.3);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Stagger animations */
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+        .stagger-5 { animation-delay: 0.5s; }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="grid-bg opacity-30"></div>
+    <div class="fixed inset-0 pointer-events-none">
+        <div class="particle" style="top: 20%; left: 10%;"></div>
+        <div class="particle" style="top: 60%; left: 85%; animation-delay: 1s;"></div>
+        <div class="particle" style="top: 80%; left: 30%; animation-delay: 2s;"></div>
+        <div class="particle" style="top: 30%; left: 70%; animation-delay: 0.5s;"></div>
+    </div>
+
+    <!-- Login Container -->
+    <div class="relative z-10 min-h-screen flex items-center justify-center p-4">
+        <div class="login-card w-full max-w-md p-8 rounded animate-slide-up">
+            <!-- Corner Accents -->
+            <div class="corner-accent tl"></div>
+            <div class="corner-accent tr"></div>
+            <div class="corner-accent bl"></div>
+            <div class="corner-accent br"></div>
+
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 mb-4 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg animate-float">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-white mb-1 tracking-tight">DEPOT JAWARA</h1>
+                <p class="text-blue-400 font-mono text-sm tracking-widest glow-accent">SES FORECASTING SYSTEM</p>
+            </div>
+
+            {% if error %}
+            <div class="error-alert rounded-lg p-4 mb-6 flex items-center gap-3">
+                <svg class="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-red-300 text-sm">{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <!-- Login Form -->
+            <form method="post" action="/login" class="space-y-5">
+                <div class="animate-fade-in stagger-1">
+                    <label for="username" class="block text-sm font-medium text-gray-400 mb-2 font-mono tracking-wide">
+                        <span class="text-blue-400">&gt;</span> USERNAME
+                    </label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        required
+                        class="brutal-input w-full px-4 py-3 rounded-lg font-mono"
+                        placeholder="Enter your username..."
+                        autofocus
+                    >
+                </div>
+
+                <div class="animate-fade-in stagger-2">
+                    <label for="password" class="block text-sm font-medium text-gray-400 mb-2 font-mono tracking-wide">
+                        <span class="text-blue-400">&gt;</span> PASSWORD
+                    </label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        class="brutal-input w-full px-4 py-3 rounded-lg font-mono"
+                        placeholder="••••••••"
+                    >
+                </div>
+
+                <button type="submit" class="brutal-btn w-full py-3 rounded-lg mt-6 animate-fade-in stagger-3">
+                    Authenticate
+                </button>
+            </form>
+
+            <!-- Default Credentials -->
+            <div class="credentials-box rounded-lg p-4 mt-6 animate-fade-in stagger-4">
+                <p class="text-xs text-gray-500 mb-2 text-center">// DEFAULT CREDENTIALS</p>
+                <div class="space-y-1 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Admin:</span>
+                        <span class="text-blue-400">admin / admin123</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Owner:</span>
+                        <span class="text-blue-400">owner / owner123</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-6 text-center">
+                <p class="text-xs text-gray-600 font-mono">
+                    <span class="text-blue-600">[</span> SECURE ACCESS REQUIRED <span class="text-blue-600">]</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

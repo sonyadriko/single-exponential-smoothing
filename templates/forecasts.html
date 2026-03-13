@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Forecasts - Depot Jawara{% endblock %}
+
+{% set active_page = 'forecasts' %}
+
+{% block head %}
+<style>
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .section-title h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+    }
+    .section-title .subtitle {
+        font-size: 0.75rem;
+        color: #6b7280;
+        font-family: 'JetBrains Mono', monospace;
+        letter-spacing: 0.1em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="section-title">
+    <h2>Latest Forecasts</h2>
+    <span class="subtitle">// CURRENT PREDICTIONS</span>
+</div>
+
+<div class="bg-surface rounded-lg overflow-hidden">
+    <table class="data-table w-full">
+        <thead>
+            <tr>
+                <th class="px-4 py-3 text-left text-blue-400 font-mono">Product</th>
+                <th class="px-4 py-3 text-left text-blue-400 font-mono">Forecast</th>
+                <th class="px-4 py-3 text-left text-blue-400 font-mono">Forecast Date</th>
+                <th class="px-4 py-3 text-left text-blue-400 font-mono">Alpha</th>
+                <th class="px-4 py-3 text-left text-blue-400 font-mono">MAPE</th>
+                <th class="px-4 py-3 text-left text-blue-400 font-mono">Created</th>
+            </tr>
+        </thead>
+        <tbody class="text-gray-300">
+            {% if latest_forecasts %}
+                {% set forecasts = latest_forecasts if latest_forecasts is iterable else [latest_forecasts] %}
+                {% for forecast in forecasts %}
+                <tr>
+                    <td class="px-4 py-3 font-medium">{{ forecast.product_name }}</td>
+                    <td class="px-4 py-3 font-mono text-blue-400">{{ '%.1f' | format(forecast.next_period_forecast) }}</td>
+                    <td class="px-4 py-3 font-mono">{{ forecast.next_period_date|date_format }}</td>
+                    <td class="px-4 py-3 font-mono">{{ forecast.alpha }}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded text-xs font-mono
+                            {% if forecast.mape < 10 %}text-emerald-400 bg-emerald-400/10
+                            {% elif forecast.mape < 20 %}text-amber-400 bg-amber-400/10
+                            {% else %}text-red-500 bg-red-500/10{% endif %}">
+                            {{ '%.1f%%' | format(forecast.mape) }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-500 font-mono text-sm">{{ forecast.created_at|date_format }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-500 font-mono">// No forecasts available</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

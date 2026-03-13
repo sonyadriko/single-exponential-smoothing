@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Overview - Depot Jawara{% endblock %}
+
+{% block head %}
+<style>
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .section-title h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+    }
+    .section-title .subtitle {
+        font-size: 0.75rem;
+        color: #6b7280;
+        font-family: 'JetBrains Mono', monospace;
+        letter-spacing: 0.1em;
+    }
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .stat-box {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .stat-box .icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .stat-box .value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+    }
+    .stat-box .label {
+        font-size: 0.7rem;
+        color: #6b7280;
+        font-family: 'JetBrains Mono', monospace;
+        text-transform: uppercase;
+    }
+    @media (max-width: 768px) {
+        .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Grid -->
+<div class="stat-grid">
+    <div class="stat-box">
+        <div class="icon" style="background: rgba(59, 130, 246, 0.15);">
+            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+        </div>
+        <div>
+            <div class="value">{{ total_products }}</div>
+            <div class="label">Products</div>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="icon" style="background: rgba(16, 185, 129, 0.15);">
+            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div>
+            <div class="value">{{ total_sales }}</div>
+            <div class="label">Sales</div>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="icon" style="background: rgba(99, 102, 241, 0.15);">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            </svg>
+        </div>
+        <div>
+            <div class="value">{{ total_forecasts }}</div>
+            <div class="label">Forecasts</div>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="icon" style="background: rgba(245, 158, 11, 0.15);">
+            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+        </div>
+        <div>
+            <div class="value">{{ projects|length }}</div>
+            <div class="label">Projects</div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="section-title">
+    <h2>Overview</h2>
+    <span class="subtitle">// RECENT ACTIVITY</span>
+</div>
+<div class="bg-surface rounded-lg overflow-hidden">
+    <table class="data-table w-full">
+        <thead>
+            <tr>
+                <th class="px-4 py-3 text-left text-blue-400 font-mono">Date</th>
+                <th class="px-4 py-3 text-left text-blue-400 font-mono">Product</th>
+                <th class="px-4 py-3 text-right text-blue-400 font-mono">Quantity</th>
+            </tr>
+        </thead>
+        <tbody class="text-gray-300">
+            {% for sale in recent_sales[:10] %}
+            <tr>
+                <td class="px-4 py-3 font-mono text-sm">{{ sale.date }}</td>
+                <td class="px-4 py-3">{{ sale.product_name }}</td>
+                <td class="px-4 py-3 text-right">
+                    <span class="badge px-2 py-1 rounded text-blue-400 text-sm">{{ sale.qty }}</span>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not recent_sales %}
+            <tr>
+                <td colspan="3" class="px-4 py-8 text-center text-gray-500 font-mono">// No recent activity</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
