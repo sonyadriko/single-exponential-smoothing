@@ -262,9 +262,15 @@
             tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 font-mono">// No sales data</td></tr>';
             return;
         }
-        tbody.innerHTML = sales.map(sale => `
+        // Backend now handles sorting by DATE type (newest first)
+        tbody.innerHTML = sales.map(sale => {
+            // Format date for display (YYYY-MM-DD)
+            const dateDisplay = sale.date instanceof Date
+                ? sale.date.toISOString().split('T')[0]
+                : sale.date;
+            return `
             <tr data-sale-id="${sale.id}" data-sale-date="${sale.date}">
-                <td class="px-4 py-3 font-mono text-sm">${sale.date}</td>
+                <td class="px-4 py-3 font-mono text-sm">${dateDisplay}</td>
                 <td class="px-4 py-3">${sale.product_name}</td>
                 <td class="px-4 py-3 text-right">
                     <span class="badge px-2 py-1 rounded text-emerald-400 font-mono">${sale.qty}</span>
@@ -273,7 +279,7 @@
                     <button onclick="deleteSale(${sale.id})" class="text-red-400 hover:text-red-300 text-sm">Delete</button>
                 </td>
             </tr>
-        `).join('');
+        `}).join('');
     }
 
     function applyFilters() {

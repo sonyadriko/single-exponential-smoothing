@@ -1,4 +1,5 @@
-from typing import List, Optional
+from typing import List, Optional, Union
+from datetime import date
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 import models
@@ -28,7 +29,7 @@ class ForecastRepository(BaseRepository):
         alpha: float,
         product_name: str,
         next_period_forecast: float,
-        next_period_date: Optional[str],
+        next_period_date: Optional[Union[str, date]],
         mape: float,
         calculation_steps: dict
     ) -> models.Forecast:

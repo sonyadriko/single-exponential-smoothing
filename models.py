@@ -23,7 +23,7 @@ class Sale(Base):
     __tablename__ = "sales"
 
     id = Column(Integer, primary_key=True, index=True)
-    date = Column(String(20), index=True)
+    date = Column(Date, index=True)
     product_name = Column(String(100), index=True)
     qty = Column(Integer)
 
@@ -37,7 +37,7 @@ class Forecast(Base):
     alpha = Column(Float)
     product_name = Column(String(100))
     next_period_forecast = Column(Float)
-    next_period_date = Column(String(20), nullable=True)
+    next_period_date = Column(Date, nullable=True)
     mape = Column(Float)
     calculation_steps = Column(JSON)
 

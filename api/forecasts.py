@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
-from typing import Dict, Any
-from datetime import datetime
+from typing import Dict, Any, Union
+from datetime import datetime, date
 import pandas as pd
 
 import models
@@ -25,6 +25,24 @@ from services.forecast_service import (
 router = APIRouter()
 
 
+def parse_date(value: Union[str, date]) -> date:
+    """Convert string to date object if needed."""
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str):
+        return date.fromisoformat(value)
+    raise ValueError(f"Invalid date: {value}")
+
+
+def date_to_iso(d: Union[date, str, None]) -> Union[str, None]:
+    """Convert date to ISO string for JSON serialization."""
+    if d is None:
+        return None
+    if isinstance(d, date):
+        return d.isoformat()
+    return d
+
+
 @router.post("")
 async def create_forecast(
     request: ForecastRequest,
@@ -42,17 +60,24 @@ async def create_forecast(
     if request.product_name:
         sales_query = [s for s in sales_query if s.product_name == request.product_name]
 
-    # Filter by date range
-    if request.start_date:
-        sales_query = [s for s in sales_query if s.date >= request.start_date]
-    if request.end_date:
-        sales_query = [s for s in sales_query if s.date <= request.end_date]
+    # Filter by date range (convert strings to date objects for comparison)
+    start_date = parse_date(request.start_date) if request.start_date else None
+    end_date = parse_date(request.end_date) if request.end_date else None
+    next_period_date = parse_date(request.next_period_date) if request.next_period_date else None
+
+    if start_date:
+        sales_query = [s for s in sales_query if s.date >= start_date]
+    if end_date:
+        sales_query = [s for s in sales_query if s.date <= end_date]
 
     if not sales_query:
         raise HTTPException(status_code=400, detail="No data available for the specified filters")
 
-    data = [{"date": s.date, "product_name": s.product_name, "qty": s.qty} for s in sales_query]
+    # Convert date objects to ISO strings for JSON serialization
+    data = [{"date": date_to_iso(s.date), "product_name": s.product_name, "qty": s.qty} for s in sales_query]
     df = pd.DataFrame(data)
+    # Ensure dates remain as strings (pandas might convert to datetime)
+    df["date"] = df["date"].astype(str)
 
     results: Dict[str, Any] = {}
     total_mape = 0
@@ -60,7 +85,7 @@ async def create_forecast(
 
     for product_name, group in df.groupby("product_name"):
         group = group.sort_values("date")
-        dates = group["date"].tolist()
+        dates = group["date"].tolist()  # Ensure strings
         actuals = group["qty"].tolist()
 
         # Calculate SES
@@ -72,7 +97,7 @@ async def create_forecast(
         # Calculate next period forecast
         next_forecast = calculate_next_period_forecast(actuals[-1], forecasts[-1], request.alpha)
 
-        # Save forecast to database
+        # Save forecast to database (convert dates to ISO strings for JSON)
         forecast_repo.create_forecast(
             project_name=request.project_name,
             created_at=datetime.utcnow(),
@@ -80,10 +105,10 @@ async def create_forecast(
             alpha=request.alpha,
             product_name=product_name,
             next_period_forecast=next_forecast,
-            next_period_date=request.next_period_date,
+            next_period_date=next_period_date,
             mape=mape,
             calculation_steps={
-                "dates": dates,
+                "dates": [date_to_iso(d) for d in dates],
                 "actuals": actuals,
                 "forecasts": forecasts,
                 "steps": steps
@@ -97,7 +122,7 @@ async def create_forecast(
             "steps": steps,
             "mape": mape,
             "next_period_forecast": next_forecast,
-            "next_period_date": request.next_period_date
+            "next_period_date": date_to_iso(next_period_date)
         }
         total_mape += mape
         product_count += 1

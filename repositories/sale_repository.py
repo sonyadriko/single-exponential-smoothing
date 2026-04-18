@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Union
+from datetime import date
 from sqlalchemy.orm import Session
 import models
 from repositories.base import BaseRepository
@@ -9,14 +10,15 @@ class SaleRepository(BaseRepository):
         super().__init__(models.Sale, db)
 
     def get_all_ordered(self) -> List[models.Sale]:
-        return self.db.query(models.Sale).order_by(models.Sale.date).all()
+        # Sort descending (newest first)
+        return self.db.query(models.Sale).order_by(models.Sale.date.desc()).all()
 
     def get_by_product(self, product_name: str) -> List[models.Sale]:
         return self.db.query(models.Sale).filter(
             models.Sale.product_name == product_name
-        ).order_by(models.Sale.date).all()
+        ).order_by(models.Sale.date.desc()).all()
 
-    def create_sale(self, date: str, product_name: str, qty: int) -> models.Sale:
+    def create_sale(self, date: Union[str, date], product_name: str, qty: int) -> models.Sale:
         sale = models.Sale(date=date, product_name=product_name, qty=qty)
         self.db.add(sale)
         self.db.commit()

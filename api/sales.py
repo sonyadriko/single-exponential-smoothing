@@ -1,12 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
-
+from typing import List, Optional, Union
+from datetime import date
 import models
 from database import get_db
 from schemas.sales import SaleCreate, SaleOut
 from repositories.sale_repository import SaleRepository
 from api.auth import get_current_user_or_session, get_admin_user_or_session
+
+
+def parse_date(value: Union[str, date]) -> date:
+    """Convert string to date object if needed."""
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str):
+        return date.fromisoformat(value)
+    raise ValueError(f"Invalid date: {value}")
 
 router = APIRouter()
 
@@ -53,7 +62,9 @@ async def add_sale(
 ):
     """Add a new sale record (admin only)."""
     sale_repo = SaleRepository(db)
-    sale_repo.create_sale(date=sale.date, product_name=sale.product_name, qty=sale.qty)
+    # Convert date string to date object if needed
+    date_obj = parse_date(sale.date)
+    sale_repo.create_sale(date=date_obj, product_name=sale.product_name, qty=sale.qty)
     return {"status": "ok", "msg": "Sale added"}
 
 
