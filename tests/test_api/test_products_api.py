@@ -8,7 +8,7 @@ class TestProductsAPI:
     def test_get_products_empty(self, client: TestClient, admin_token):
         """Test getting products when none exist."""
         response = client.get(
-            "/products",
+            "/api/products",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
@@ -18,7 +18,7 @@ class TestProductsAPI:
     def test_get_products_with_data(self, client: TestClient, admin_token, test_products):
         """Test getting products with data."""
         response = client.get(
-            "/products",
+            "/api/products",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
@@ -30,7 +30,7 @@ class TestProductsAPI:
         """Test creating a product as admin."""
         product_data = {"name": "New Product"}
         response = client.post(
-            "/products",
+            "/api/products",
             json=product_data,
             headers={"Authorization": f"Bearer {admin_token}"}
         )
@@ -42,7 +42,7 @@ class TestProductsAPI:
         """Test creating a duplicate product."""
         product_data = {"name": "Test Product 1"}
         response = client.post(
-            "/products",
+            "/api/products",
             json=product_data,
             headers={"Authorization": f"Bearer {admin_token}"}
         )
@@ -53,7 +53,7 @@ class TestProductsAPI:
         """Test that owner cannot create products."""
         product_data = {"name": "New Product"}
         response = client.post(
-            "/products",
+            "/api/products",
             json=product_data,
             headers={"Authorization": f"Bearer {owner_token}"}
         )
@@ -64,13 +64,13 @@ class TestProductsAPI:
         """Test deleting a product that has no sales."""
         # Get product ID
         products_response = client.get(
-            "/products",
+            "/api/products",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
         product_id = products_response.json()[0]["id"]
 
         response = client.delete(
-            f"/products/{product_id}",
+            f"/api/products/{product_id}",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
@@ -80,13 +80,13 @@ class TestProductsAPI:
         """Test that deleting a product with sales fails."""
         # Get product ID (Test Product 1 has sales)
         products_response = client.get(
-            "/products",
+            "/api/products",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
         product_id = next(p["id"] for p in products_response.json() if p["name"] == "Test Product 1")
 
         response = client.delete(
-            f"/products/{product_id}",
+            f"/api/products/{product_id}",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 

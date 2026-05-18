@@ -14,7 +14,7 @@ class TestForecastsAPI:
             "next_period_date": "2025-05-04"
         }
         response = client.post(
-            "/forecast",
+            "/api/forecast",
             json=forecast_data,
             headers={"Authorization": f"Bearer {admin_token}"}
         )
@@ -31,7 +31,7 @@ class TestForecastsAPI:
             "product_name": "Test Product 1"
         }
         response = client.post(
-            "/forecast",
+            "/api/forecast",
             json=forecast_data,
             headers={"Authorization": f"Bearer {owner_token}"}
         )
@@ -43,14 +43,14 @@ class TestForecastsAPI:
         # First create a forecast
         forecast_data = {"alpha": 0.5, "product_name": "Test Product 1"}
         client.post(
-            "/forecast",
+            "/api/forecast",
             json=forecast_data,
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
         # Get latest forecast
         response = client.get(
-            "/forecast/latest",
+            "/api/forecast/latest",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
@@ -65,14 +65,14 @@ class TestForecastsAPI:
         # First create a forecast
         forecast_data = {"alpha": 0.5, "product_name": "Test Product 1"}
         client.post(
-            "/forecast",
+            "/api/forecast",
             json=forecast_data,
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
         # Get history
         response = client.get(
-            "/forecasts/history",
+            "/api/forecast/history",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
@@ -89,14 +89,14 @@ class TestForecastsAPI:
             "project_name": "Test Project"
         }
         client.post(
-            "/forecast",
+            "/api/forecast",
             json=forecast_data,
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
         # Get projects
         response = client.get(
-            "/forecast/projects",
+            "/api/forecast/projects",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
@@ -114,14 +114,14 @@ class TestForecastsAPI:
             "project_name": "Test Project"
         }
         client.post(
-            "/forecast",
+            "/api/forecast",
             json=forecast_data,
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
         # Get project by name
         response = client.get(
-            "/forecast/project/Test Project",
+            "/api/forecast/project/Test Project",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
@@ -139,14 +139,14 @@ class TestForecastsAPI:
             "project_name": "Project to Delete"
         }
         client.post(
-            "/forecast",
+            "/api/forecast",
             json=forecast_data,
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
         # Delete the project
         response = client.delete(
-            "/forecast/project/Project to Delete",
+            "/api/forecast/project/Project to Delete",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
@@ -156,7 +156,7 @@ class TestForecastsAPI:
     def test_reset_data(self, client: TestClient, admin_token, test_sales):
         """Test resetting sales and forecasts data."""
         response = client.post(
-            "/forecast/reset-data",
+            "/api/forecast/reset-data",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
 
