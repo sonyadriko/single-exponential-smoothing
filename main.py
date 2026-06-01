@@ -119,7 +119,7 @@ async def login_page(request: Request):
         user = get_session_user(request)
         default = "overview" if user.get("role") == "admin" else "forecasts"
         return RedirectResponse(url=f"/{default}", status_code=302)
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse(request, "login.html")
 
 
 @app.post("/login")
@@ -135,8 +135,9 @@ async def login_submit(
 
     if not user or not verify_password(password, user.hashed_password):
         return templates.TemplateResponse(
+            request,
             "login.html",
-            {"request": request, "error": "Invalid username or password"},
+            {"error": "Invalid username or password"},
             status_code=status.HTTP_401_UNAUTHORIZED
         )
 
@@ -198,8 +199,7 @@ async def overview(request: Request, db: Session = Depends(get_db)):
     sale_repo = SaleRepository(db)
     forecast_repo = ForecastRepository(db)
 
-    return templates.TemplateResponse("overview.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "overview.html", {
         "user": user,
         "total_products": product_repo.count(),
         "total_sales": sale_repo.count(),
@@ -222,8 +222,7 @@ async def products(request: Request, db: Session = Depends(get_db)):
     from repositories.product_repository import ProductRepository
     product_repo = ProductRepository(db)
 
-    return templates.TemplateResponse("products.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "products.html", {
         "user": user,
         "products": product_repo.get_all()
     })
@@ -244,8 +243,7 @@ async def sales(request: Request, db: Session = Depends(get_db)):
     product_repo = ProductRepository(db)
     sale_repo = SaleRepository(db)
 
-    return templates.TemplateResponse("sales.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "sales.html", {
         "user": user,
         "products": product_repo.get_all(),
         "sales": sale_repo.get_all()
@@ -265,8 +263,7 @@ async def forecast(request: Request, db: Session = Depends(get_db)):
     from repositories.product_repository import ProductRepository
     product_repo = ProductRepository(db)
 
-    return templates.TemplateResponse("forecast.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "forecast.html", {
         "user": user,
         "products": product_repo.get_all()
     })
@@ -282,8 +279,7 @@ async def forecasts(request: Request, db: Session = Depends(get_db)):
     from repositories.forecast_repository import ForecastRepository
     forecast_repo = ForecastRepository(db)
 
-    return templates.TemplateResponse("forecasts.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "forecasts.html", {
         "user": user,
         "latest_forecasts": forecast_repo.get_latest(),
         "projects": forecast_repo.get_project_summaries(),
@@ -332,8 +328,7 @@ async def chart(request: Request, db: Session = Depends(get_db)):
             "forecasts": forecasts
         })
 
-    return templates.TemplateResponse("chart.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "chart.html", {
         "user": user,
         "latest_forecasts": latest_dicts,
         "projects": forecast_repo.get_project_summaries()
@@ -350,8 +345,7 @@ async def projects(request: Request, db: Session = Depends(get_db)):
     from repositories.forecast_repository import ForecastRepository
     forecast_repo = ForecastRepository(db)
 
-    return templates.TemplateResponse("projects.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "projects.html", {
         "user": user,
         "projects": forecast_repo.get_project_summaries()
     })
