@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Depends, HTTPException, status, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from jinja2 import Environment, FileSystemLoader
 from fastapi.responses import RedirectResponse
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.orm import Session
@@ -43,7 +44,9 @@ app.add_middleware(
 )
 
 # Setup templates and static files
-templates = Jinja2Templates(directory="templates")
+# cache_size=0 works around a Python 3.14 weakref hashability bug in Jinja2's LRU cache
+_jinja_env = Environment(loader=FileSystemLoader("templates"), cache_size=0)
+templates = Jinja2Templates(env=_jinja_env)
 
 # Custom Jinja filter for date formatting
 def date_filter(value):
