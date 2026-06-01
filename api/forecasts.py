@@ -228,33 +228,6 @@ async def get_forecast_project(
     }
 
 
-@router.put("/project/{project_name}")
-async def update_forecast_project(
-    project_name: str,
-    new_name: str = Body(..., embed=True),
-    db: Session = Depends(get_db),
-    admin: models.User = Depends(get_admin_user_or_session)
-):
-    """Rename a forecast project (admin only)."""
-    forecast_repo = ForecastRepository(db)
-    if not forecast_repo.update_project_name(project_name, new_name):
-        raise HTTPException(status_code=404, detail="Project not found")
-    return {"status": "ok", "msg": "Project renamed"}
-
-
-@router.delete("/project/{project_name}")
-async def delete_forecast_project(
-    project_name: str,
-    db: Session = Depends(get_db),
-    admin: models.User = Depends(get_admin_user_or_session)
-):
-    """Delete a forecast project (admin only)."""
-    forecast_repo = ForecastRepository(db)
-    count = forecast_repo.delete_project(project_name)
-    if count == 0:
-        raise HTTPException(status_code=404, detail="Project not found")
-    return {"status": "ok", "msg": f"Deleted {count} forecast(s)"}
-
 
 @router.post("/reset-data")
 async def reset_data(

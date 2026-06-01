@@ -4,218 +4,105 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a full-stack **Single Exponential Smoothing (SES) Forecasting Application** for "Depot Jawara". The application provides sales forecasting capabilities using time series analysis with an interactive UI for calculating, visualizing, and managing forecasts.
-
-## Architecture
-
-**Backend:** Python FastAPI + SQLAlchemy (SQLite for dev, MySQL for production)
-**Frontend:** HTML templates with Tailwind CSS (served via FastAPI)
-**Authentication:** Dual-mode - JWT tokens for API, session-based for web UI
-
-### Layered Architecture
-
-The codebase follows a clean layered architecture:
-
-- **API Layer** (`api/`) - FastAPI route handlers, request/response handling
-- **Service Layer** (`services/`) - Business logic, SES calculations, authentication
-- **Repository Layer** (`repositories/`) - Data access, database queries
-- **Schema Layer** (`schemas/`) - Pydantic models for validation
-- **Model Layer** (`models.py`) - SQLAlchemy ORM models
-
-### Key Files
-
-- `main.py` - FastAPI app initialization, middleware setup, template routes
-- `database.py` - Database engine and session management (supports SQLite/MySQL)
-- `config.py` - Pydantic settings with `.env` support
-- `services/auth_service.py` - Dual authentication (JWT + session-based)
-- `services/forecast_service.py` - SES calculation algorithm
-- `services/seed_service.py` - Initial data seeding on startup
-- `migrate_to_mysql.py` - SQLite to MySQL migration with date format conversion
+Full-stack **Single Exponential Smoothing (SES) Forecasting Application** for "Depot Jawara". Backend: Python FastAPI + SQLAlchemy. Frontend: Jinja2 HTML templates + Tailwind CSS served by FastAPI. Auth: dual-mode (JWT for API, session cookies for web UI).
 
 ## Development Commands
 
 ```bash
-# Install dependencies
 pip install -r requirements.txt
-
-# Start dev server (port 8000)
-uvicorn main:app --reload
-
-# Run all tests
-pytest
-
-# Run tests with coverage
-pytest --cov=. --cov-report=html
-
-# Run specific test file
-pytest tests/test_api/test_forecasts_api.py
-
-# Run specific test class or method
-pytest tests/test_api/test_forecasts_api.py::TestForecastsAPI::test_create_forecast_admin
-
-# Run tests in verbose mode
-pytest -v
-
-# Database migration (SQLite to MySQL)
-python migrate_to_mysql.py
-
-# Docker deployment
-docker-compose up -d
-docker-compose logs -f backend
-docker-compose down
+uvicorn main:app --reload          # dev server on port 8000
+pytest                             # run all tests
+pytest tests/test_api/test_forecasts_api.py::TestForecastsAPI::test_create_forecast_admin  # single test
+pytest --cov=. --cov-report=html   # with coverage
+python migrate_to_mysql.py         # SQLite → MySQL migration
+docker-compose up -d               # production (MySQL + backend)
 ```
 
-### Default Test Accounts
-- **Admin:** `admin` / `admin123` (full access - create forecasts, manage users)
-- **Owner:** `owner` / `owner123` (read-only - view forecasts only)
+Default accounts (auto-created on first start): `admin`/`admin123`, `owner`/`owner123`.
 
-These are auto-created on first server start via the `startup_event()` handler in `main.py`.
+## Architecture
 
-## Core Algorithm: Single Exponential Smoothing (SES)
+### Layers
 
-Located in `services/forecast_service.py` (`calculate_ses_with_steps` function).
+| Layer | Location | Role |
+|-------|----------|------|
+| API | `api/` | FastAPI routers, request/response |
+| Service | `services/` | Business logic, SES calc, auth |
+| Repository | `repositories/` | DB queries via SQLAlchemy |
+| Schema | `schemas/` | Pydantic validation models |
+| Model | `models.py` | SQLAlchemy ORM |
 
-**Formula:** `F(t+1) = alpha × A(t) + (1-alpha) × F(t)`
-- `F(t+1)` = forecast for next period
-- `A(t)` = actual value in current period
-- `F(t)` = forecast for current period
-- `alpha` = smoothing coefficient (0-1)
+### Key files
+- `main.py` — app init, all web UI template routes, session middleware
+- `database.py` — engine setup, auto-detects SQLite vs MySQL
+- `config.py` — Pydantic settings, reads `.env`
+- `services/auth_service.py` — JWT + session auth helpers
+- `services/forecast_service.py` — `calculate_ses_with_steps()` core algorithm
+- `services/seed_service.py` — seeds users, products, sales on empty DB at startup
 
-**Initialization:** `F1 = A1` (first forecast equals first actual value)
+### Frontend conventions
+- All pages extend `templates/base.html`, include `templates/partials/sidebar.html`
+- `static/js/api.js` — global `api` object (fetch wrapper with session cookies). Use `api.get()`, `api.post()`, `api.put()`, `api.delete()`.
+- Tables that need sorting/pagination use **DataTables 1.13.8** (jQuery-dependent). Load jQuery before DataTables in `{% block scripts %}`.
+- Admin-only pages redirect owner → `/forecasts`. Unauthenticated → `/login`.
 
-**MAPE Calculation:** Mean Absolute Percentage Error for forecast accuracy
+## Role-Based Access
 
-The function returns detailed step-by-step calculations including period, date, actual, forecast, formula, calculation, error, and error percentage.
+- **Admin:** overview, products, sales, forecast (create), forecasts (view), chart
+- **Owner:** forecasts (view), chart
+- API: `get_current_user_or_session` (any auth), `get_admin_user_or_session` (admin only, 403 for owner)
+
+## Core Algorithm
+
+`services/forecast_service.py` → `calculate_ses_with_steps(actuals, dates, alpha)`
+
+**Formula:** `F(t+1) = α × A(t) + (1-α) × F(t)`, initialized with `F1 = A1`
+
+Returns: forecasts list, step-by-step detail, MAPE. Results saved to `Forecasts` table on every `POST /api/forecast`.
 
 ## Database Schema
 
-**Users:** id, username, hashed_password, role ('admin' | 'owner')
-**Products:** id, name, created_at
-**Sales:** id, date, product_name, qty
-**Forecasts:** id, project_name, created_at, created_by, alpha, product_name, next_period_forecast, next_period_date, mape, calculation_steps (JSON)
+```
+Users:     id, username, hashed_password, role ('admin'|'owner')
+Products:  id, name, created_at
+Sales:     id, date (Date), product_name, qty
+Forecasts: id, project_name, created_at, created_by, alpha,
+           product_name, next_period_forecast, next_period_date,
+           mape, calculation_steps (JSON)
+```
+
+`Sales.date` is a SQLAlchemy `Date` column. When comparing with strings in queries, pass ISO format `YYYY-MM-DD` — works for both SQLite and MySQL.
 
 ## API Endpoints
 
-**Authentication:**
-- `POST /token` - Login (form data: username, password) → returns JWT token
-- `GET /users/me` - Get current authenticated user
+**Auth:** `POST /token`, `GET /users/me`
 
-**Sales:**
-- `GET /api/sales` - List all sales (with optional date filters)
-- `POST /api/sales` - Create new sale (admin only)
-- `GET /api/sales/product/{product_name}` - Get sales for specific product
+**Sales:** `GET /api/sales?product_name=&date_from=&date_to=`, `POST /api/sales`, `DELETE /api/sales/{id}`
 
-**Products:**
-- `GET /api/products` - List all products
-- `POST /api/products` - Create new product (admin only)
-- `DELETE /api/products/{product_id}` - Delete product (admin only)
+**Products:** `GET /api/products`, `POST /api/products`, `DELETE /api/products/{id}`
 
-**Forecasts:**
-- `POST /api/forecast` - Create forecast(s) (admin only)
-- `GET /api/forecast/latest` - Get latest forecast
-- `GET /api/forecasts/history` - Get forecast history
-- `GET /api/forecast/projects` - List all forecast projects
-- `GET /api/forecast/project/{project_name}` - Get forecasts by project name
+**Forecasts:** `POST /api/forecast`, `GET /api/forecast/latest`, `GET /api/forecasts/history`, `GET /api/forecast/projects`, `GET /api/forecast/project/{project_name}`
 
-**Web UI Routes:**
-- `GET /` - Home page (requires session auth)
-- `GET /login` - Login page
-- `POST /login` - Login form handler
-- `GET /logout` - Logout handler
-- `GET /admin` - Admin dashboard (admin only)
-- `GET /owner` - Owner dashboard (owner only)
-- `GET /sales` - Sales input page
+**Web UI:** `/`, `/login`, `/logout`, `/overview`, `/products`, `/sales`, `/forecast`, `/forecasts`, `/chart`
 
-## Key Implementation Details
+## Authentication Detail
 
-### Authentication (Dual-Mode)
+**Session (web UI):** cookie via Starlette `SessionMiddleware`. Helpers in `services/auth_service.py`: `create_session()`, `get_session_user()`, `is_authenticated()`, `is_admin()`. All template routes in `main.py` check `is_authenticated()` first.
 
-The app supports both JWT and session-based authentication:
-
-**JWT Authentication** (API endpoints):
-- Token stored in `localStorage` on frontend
-- Token includes `username` and `role` claims
-- Validated via `get_current_user()` dependency in `api/auth.py`
-- Token creation/validation in `services/auth_service.py`
-
-**Session Authentication** (Web UI):
-- Session middleware with cookie-based sessions
-- Functions: `create_session()`, `get_session_user()`, `clear_session()`, `is_authenticated()`, `is_admin()`
-- Used by template routes in `main.py`
-
-### Role-Based Access Control
-
-- **Admin role:** Full access - create forecasts, manage users, reset data
-- **Owner role:** Read-only - view forecasts and sales data only
-- API dependencies: `get_current_user()` (any authenticated), `get_admin_user()` (admin only, returns 403 for owners)
-
-### Database Configuration
-
-- **Development:** SQLite (`sqlite:///./sales_app.db`) - default, auto-created
-- **Production:** MySQL via `DATABASE_URL` environment variable
-- Database engine auto-detects SQLite vs MySQL and applies appropriate connection settings
-- Migration script (`migrate_to_mysql.py`) handles SQLite → MySQL migration with date format conversion
-
-### Seed Data
-
-On startup (`startup_event()` in `main.py`), creates if tables are empty:
-- Default admin and owner users
-- 8 products (Indonesian food items: Mie Instan, Beras, Gula Pasir, Minyak Goreng, Telur Ayam, Susu UHT, Kopi Sachet, Teh Celup)
-- Sample sales data for May 2025
-
-### Forecast Projects
-
-A "project" is a collection of forecasts (one per product) created at the same time with the same alpha parameter, identified by a `project_name`. This allows grouping related forecasts for comparison and analysis.
+**JWT (API):** Bearer token, validated via `get_current_user()` in `api/auth.py`. Frontend stores token in `localStorage` (used by `api.js`).
 
 ## Testing
 
-Tests use pytest with in-memory SQLite database for isolation.
+In-memory SQLite, function-scoped `db_session` fixture. Test structure:
+- `tests/conftest.py` — fixtures: `db_session`, `client`, `test_users`, `admin_token`, `owner_token`, `auth_headers`, `test_products`, `test_sales`
+- `tests/test_api/` — endpoint tests grouped by resource
+- `tests/test_*_service.py` — service unit tests
 
-**Test Structure:**
-- `tests/conftest.py` - Shared fixtures (db_session, client, test_users, auth tokens, test data)
-- `tests/test_api/` - API endpoint tests organized by resource
-- `tests/test_*_service.py` - Service layer unit tests
-
-**Key Fixtures:**
-- `db_session` - In-memory SQLite database session (function-scoped)
-- `client` - TestClient with database override
-- `test_users` - Creates admin and owner test users
-- `admin_token` / `owner_token` - JWT tokens for authenticated requests
-- `auth_headers` - Pre-formatted Authorization headers
-- `test_products` / `test_sales` - Sample data for testing
-
-**Test Patterns:**
-- Each test class groups related endpoint tests
-- Tests verify both success cases and authorization (admin vs owner)
-- Use `assert response.status_code == 200` pattern
-- API tests use Bearer token authentication via headers
-
-## Environment Configuration
-
-Create a `.env` file based on `.env.example`:
+## Environment
 
 ```bash
-DATABASE_URL=mysql+pymysql://root:password@localhost:3306/sales_app
-SECRET_KEY=change-this-to-a-random-secret-key-in-production
+DATABASE_URL=mysql+pymysql://user:pass@host:3306/sales_app  # omit for SQLite default
+SECRET_KEY=random-secret
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
-
-**For SQLite (development):** Set `DATABASE_URL=sqlite:///./sales_app.db` or omit to use default.
-
-## Docker Deployment
-
-The `docker-compose.yml` sets up MySQL + FastAPI backend:
-
-- **MySQL container:** Port 3306, with health checks
-- **Backend container:** Port 8000, waits for MySQL to be healthy
-- Environment variables injected via docker-compose
-- Volume for MySQL data persistence
-
-## Production Considerations
-
-- `SECRET_KEY` must be set to a secure random value via environment variable
-- CORS currently allows all origins (`allow_origins=["*"]`) - restrict to specific domains in production
-- SQLite suitable for development; use MySQL for production (migration script provided)
-- Add HTTPS/TLS termination (nginx reverse proxy or cloud load balancer)
-- Session middleware uses browser session cookies (closes when browser closes)

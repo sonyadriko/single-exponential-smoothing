@@ -5,6 +5,7 @@
 {% set active_page = 'sales' %}
 
 {% block head %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 <style>
     .section-title {
         display: flex;
@@ -16,12 +17,6 @@
         font-size: 1.5rem;
         font-weight: 600;
         color: white;
-    }
-    .section-title .subtitle {
-        font-size: 0.75rem;
-        color: #6b7280;
-        font-family: 'JetBrains Mono', monospace;
-        letter-spacing: 0.1em;
     }
     .modal-overlay {
         position: fixed;
@@ -60,6 +55,71 @@
         font-size: 1.5rem;
         line-height: 1;
     }
+
+    /* DataTables dark theme */
+    div.dt-container {
+        color: #d1d5db;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+    }
+    div.dt-container .dt-search input,
+    div.dt-container .dt-length select {
+        background: #0f172a;
+        color: #d1d5db;
+        border: 1px solid #334155;
+        border-radius: 0.375rem;
+        padding: 0.25rem 0.5rem;
+        outline: none;
+    }
+    div.dt-container .dt-search input:focus,
+    div.dt-container .dt-length select:focus {
+        border-color: #10b981;
+    }
+    div.dt-container .dt-search label,
+    div.dt-container .dt-length label,
+    div.dt-container .dt-info {
+        color: #9ca3af;
+    }
+    div.dt-container .dt-paging .dt-paging-button {
+        background: #1e293b;
+        color: #9ca3af !important;
+        border: 1px solid #334155;
+        border-radius: 0.375rem;
+        padding: 0.25rem 0.625rem;
+        cursor: pointer;
+    }
+    div.dt-container .dt-paging .dt-paging-button:hover:not(.disabled) {
+        background: #334155 !important;
+        color: #ffffff !important;
+        border-color: #475569;
+    }
+    div.dt-container .dt-paging .dt-paging-button.current {
+        background: #10b981 !important;
+        color: #ffffff !important;
+        border-color: #10b981;
+    }
+    div.dt-container .dt-paging .dt-paging-button.disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+    table.dataTable thead th {
+        border-bottom: 1px solid #334155 !important;
+        background: transparent;
+    }
+    table.dataTable thead th.dt-orderable-asc:hover,
+    table.dataTable thead th.dt-orderable-desc:hover {
+        background: #1e293b;
+    }
+    table.dataTable tbody tr {
+        background: transparent !important;
+        border-bottom: 1px solid #1e293b;
+    }
+    table.dataTable tbody tr:hover {
+        background: #1e293b !important;
+    }
+    table.dataTable tbody td {
+        border-top: none;
+    }
 </style>
 {% endblock %}
 
@@ -69,37 +129,35 @@
     <button onclick="openAddSaleModal()" class="btn-primary px-4 py-2 rounded text-sm font-mono">+ Add Sale</button>
 </div>
 
-<!-- Search & Filter Bar -->
+<!-- Filter Bar -->
 <div class="bg-surface2 rounded-lg p-4 mb-4">
     <div class="flex flex-wrap gap-4 items-end">
-        <div class="flex-1 min-w-[200px]">
-            <label class="block text-xs text-gray-400 font-mono mb-1">🔍 Search Product</label>
-            <input type="text" id="searchProduct" placeholder="Type product name..."
-                class="form-input w-full px-3 py-2 rounded font-mono text-sm">
+        <div class="flex-1 min-w-[180px]">
+            <label class="block text-xs text-gray-400 font-mono mb-1">Product</label>
+            <select id="filterProduct" class="form-input w-full px-3 py-2 rounded font-mono text-sm">
+                <option value="">All Products</option>
+                {% for product in products %}
+                <option value="{{ product.name }}">{{ product.name }}</option>
+                {% endfor %}
+            </select>
         </div>
         <div>
             <label class="block text-xs text-gray-400 font-mono mb-1">From</label>
-            <input type="date" id="dateFrom" class="form-input px-3 py-2 rounded font-mono text-sm">
+            <input type="date" id="filterDateFrom" class="form-input px-3 py-2 rounded font-mono text-sm">
         </div>
         <div>
             <label class="block text-xs text-gray-400 font-mono mb-1">To</label>
-            <input type="date" id="dateTo" class="form-input px-3 py-2 rounded font-mono text-sm">
+            <input type="date" id="filterDateTo" class="form-input px-3 py-2 rounded font-mono text-sm">
         </div>
-        <div class="flex gap-2">
-            <button onclick="applyFilters()" class="btn-primary px-4 py-2 rounded text-sm font-mono">Apply</button>
+        <div>
             <button onclick="clearFilters()" class="px-4 py-2 rounded text-sm font-mono border border-border text-gray-400 hover:text-white">Clear</button>
         </div>
-    </div>
-    <div class="flex gap-2 mt-3">
-        <button onclick="quickFilter('all')" class="quick-filter-btn px-3 py-1 text-xs border border-border rounded hover:border-blue-400 font-mono text-blue-400" data-filter="all">All</button>
-        <button onclick="quickFilter('this_month')" class="quick-filter-btn px-3 py-1 text-xs border border-border rounded hover:border-blue-400 font-mono text-gray-500" data-filter="this_month">This Month</button>
-        <button onclick="quickFilter('last_month')" class="quick-filter-btn px-3 py-1 text-xs border border-border rounded hover:border-blue-400 font-mono text-gray-500" data-filter="last_month">Last Month</button>
     </div>
 </div>
 
 <!-- Sales Table -->
-<div class="bg-surface rounded-lg overflow-hidden">
-    <table class="data-table w-full">
+<div class="bg-surface rounded-lg overflow-hidden p-4">
+    <table id="salesTable" class="data-table w-full">
         <thead>
             <tr>
                 <th class="px-4 py-3 text-left text-emerald-400 font-mono">Date</th>
@@ -110,7 +168,7 @@
         </thead>
         <tbody id="salesTableBody" class="text-gray-300">
             {% for sale in sales %}
-            <tr data-sale-id="{{ sale.id }}" data-sale-date="{{ sale.date }}">
+            <tr>
                 <td class="px-4 py-3 font-mono text-sm">{{ sale.date }}</td>
                 <td class="px-4 py-3">{{ sale.product_name }}</td>
                 <td class="px-4 py-3 text-right">
@@ -121,11 +179,6 @@
                 </td>
             </tr>
             {% endfor %}
-            {% if not sales %}
-            <tr>
-                <td colspan="4" class="px-4 py-8 text-center text-gray-500 font-mono">// No sales data</td>
-            </tr>
-            {% endif %}
         </tbody>
     </table>
 </div>
@@ -181,22 +234,48 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="/static/js/api.js"></script>
 <script>
-    const products = [
-        {% for product in products %}
-        { "id": {{ product.id }}, "name": "{{ product.name }}" }{{ "," if not loop.last else "" }}
-        {% endfor %}
-    ];
-    let allSales = [
-        {% for sale in sales %}
-        { "id": {{ sale.id }}, "date": "{{ sale.date }}", "product_name": "{{ sale.product_name }}", "qty": {{ sale.qty }} }{{ "," if not loop.last else "" }}
-        {% endfor %}
-    ];
+    let salesDT = null;
 
-    const today = new Date().toISOString().split('T')[0];
+    function applyCustomFilters() {
+        loadSales({
+            product_name: document.getElementById('filterProduct').value || undefined,
+            date_from:    document.getElementById('filterDateFrom').value || undefined,
+            date_to:      document.getElementById('filterDateTo').value || undefined,
+        });
+    }
+
+    function clearFilters() {
+        document.getElementById('filterProduct').value = '';
+        document.getElementById('filterDateFrom').value = '';
+        document.getElementById('filterDateTo').value = '';
+        loadSales();
+    }
+
+    function initDataTable() {
+        if (salesDT) { salesDT.destroy(); salesDT = null; }
+        salesDT = $('#salesTable').DataTable({
+            pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            ordering: true,
+            order: [[0, 'desc']],
+            language: {
+                emptyTable: '// No sales data',
+                zeroRecords: '// No matching records',
+                info: 'Showing _START_ to _END_ of _TOTAL_ entries',
+                infoEmpty: 'No entries',
+                lengthMenu: 'Show _MENU_ entries',
+                paginate: { first: '«', last: '»', next: '›', previous: '‹' }
+            },
+            columnDefs: [{ targets: [2, 3], orderable: false }]
+        });
+    }
+
     const saleDateInput = document.getElementById('saleDate');
-    if (saleDateInput) saleDateInput.value = today;
+    if (saleDateInput) saleDateInput.value = new Date().toISOString().split('T')[0];
 
     function openAddSaleModal() {
         document.getElementById('addSaleModal').classList.remove('hidden');
@@ -243,95 +322,35 @@
     });
 
     async function loadSales(params = {}) {
-        const queryParams = new URLSearchParams();
-        if (params.product_name) queryParams.append('product_name', params.product_name);
-        if (params.date_from) queryParams.append('date_from', params.date_from);
-        if (params.date_to) queryParams.append('date_to', params.date_to);
-        const url = '/api/sales' + (queryParams.toString() ? `?${queryParams}` : '');
+        const qs = new URLSearchParams();
+        if (params.product_name) qs.append('product_name', params.product_name);
+        if (params.date_from)    qs.append('date_from', params.date_from);
+        if (params.date_to)      qs.append('date_to', params.date_to);
+        const url = '/api/sales' + (qs.toString() ? `?${qs}` : '');
         try {
-            allSales = await api.get(url);
-            renderTable(allSales);
+            const sales = await api.get(url);
+            renderTable(sales);
         } catch (err) {
             console.error('Error loading sales:', err);
         }
     }
 
     function renderTable(sales) {
+        if (salesDT) { salesDT.destroy(); salesDT = null; }
         const tbody = document.getElementById('salesTableBody');
-        if (!sales || sales.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 font-mono">// No sales data</td></tr>';
-            return;
-        }
-        // Backend now handles sorting by DATE type (newest first)
-        tbody.innerHTML = sales.map(sale => {
-            // Format date for display (YYYY-MM-DD)
-            const dateDisplay = sale.date instanceof Date
-                ? sale.date.toISOString().split('T')[0]
-                : sale.date;
-            return `
-            <tr data-sale-id="${sale.id}" data-sale-date="${sale.date}">
-                <td class="px-4 py-3 font-mono text-sm">${dateDisplay}</td>
-                <td class="px-4 py-3">${sale.product_name}</td>
-                <td class="px-4 py-3 text-right">
-                    <span class="badge px-2 py-1 rounded text-emerald-400 font-mono">${sale.qty}</span>
-                </td>
-                <td class="px-4 py-3 text-right">
-                    <button onclick="deleteSale(${sale.id})" class="text-red-400 hover:text-red-300 text-sm">Delete</button>
-                </td>
-            </tr>
-        `}).join('');
+        tbody.innerHTML = (sales && sales.length > 0)
+            ? sales.map(sale => {
+                const d = sale.date instanceof Date ? sale.date.toISOString().split('T')[0] : sale.date;
+                return `<tr>
+                    <td class="px-4 py-3 font-mono text-sm">${d}</td>
+                    <td class="px-4 py-3">${sale.product_name}</td>
+                    <td class="px-4 py-3 text-right"><span class="badge px-2 py-1 rounded text-emerald-400 font-mono">${sale.qty}</span></td>
+                    <td class="px-4 py-3 text-right"><button onclick="deleteSale(${sale.id})" class="text-red-400 hover:text-red-300 text-sm">Delete</button></td>
+                </tr>`;
+            }).join('')
+            : '';
+        initDataTable();
     }
-
-    function applyFilters() {
-        const productName = document.getElementById('searchProduct').value.trim();
-        const dateFrom = document.getElementById('dateFrom').value;
-        const dateTo = document.getElementById('dateTo').value;
-        document.querySelectorAll('.quick-filter-btn').forEach(b => {
-            b.classList.remove('text-blue-400'); b.classList.add('text-gray-500');
-        });
-        loadSales({ product_name: productName || undefined, date_from: dateFrom || undefined, date_to: dateTo || undefined });
-    }
-
-    function clearFilters() {
-        document.getElementById('searchProduct').value = '';
-        document.getElementById('dateFrom').value = '';
-        document.getElementById('dateTo').value = '';
-        document.querySelectorAll('.quick-filter-btn').forEach(b => {
-            b.classList.remove('text-blue-400'); b.classList.add('text-gray-500');
-        });
-        document.querySelector('[data-filter="all"]')?.classList.add('text-blue-400');
-        document.querySelector('[data-filter="all"]')?.classList.remove('text-gray-500');
-        loadSales();
-    }
-
-    function quickFilter(filter) {
-        document.querySelectorAll('.quick-filter-btn').forEach(b => {
-            b.classList.remove('text-blue-400'); b.classList.add('text-gray-500');
-        });
-        document.querySelector(`[data-filter="${filter}"]`)?.classList.add('text-blue-400');
-        document.querySelector(`[data-filter="${filter}"]`)?.classList.remove('text-gray-500');
-        document.getElementById('searchProduct').value = '';
-        document.getElementById('dateFrom').value = '';
-        document.getElementById('dateTo').value = '';
-
-        const now = new Date();
-        let params = {};
-        if (filter === 'this_month') {
-            const start = new Date(now.getFullYear(), now.getMonth(), 1);
-            params.date_from = start.toISOString().split('T')[0];
-            params.date_to = now.toISOString().split('T')[0];
-        } else if (filter === 'last_month') {
-            const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            const end = new Date(now.getFullYear(), now.getMonth(), 0);
-            params.date_from = start.toISOString().split('T')[0];
-            params.date_to = end.toISOString().split('T')[0];
-        }
-        loadSales(params);
-    }
-
-    document.getElementById('searchProduct')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); applyFilters(); }
-    });
 
     let saleIdToDelete = null;
     function deleteSale(id) {
@@ -355,5 +374,17 @@
             alert('Error: ' + err.message);
         }
     }
+
+    initDataTable();
+
+    document.getElementById('filterProduct')?.addEventListener('change', applyCustomFilters);
+    document.getElementById('filterDateFrom')?.addEventListener('change', applyCustomFilters);
+    document.getElementById('filterDateTo')?.addEventListener('change', applyCustomFilters);
+    // Also trigger on Enter key for date inputs
+    ['filterDateFrom', 'filterDateTo'].forEach(id => {
+        document.getElementById(id)?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') applyCustomFilters();
+        });
+    });
 </script>
 {% endblock %}

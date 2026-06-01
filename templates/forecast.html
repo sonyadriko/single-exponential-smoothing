@@ -71,7 +71,6 @@
     <div class="flex gap-4">
         <button onclick="calculateForecast()" class="btn-primary px-6 py-2 rounded">Calculate Forecast</button>
         <button onclick="resetFilters()" class="px-4 py-2 rounded text-sm border border-border text-gray-400 hover:text-white">Reset Filters</button>
-        <button id="saveProjectBtn" onclick="showSaveProjectModal()" class="hidden px-4 py-2 rounded text-sm bg-emerald-600 text-white hover:bg-emerald-500">Save Project</button>
     </div>
 </div>
 
@@ -117,16 +116,6 @@
     </div>
 </div>
 
-<!-- Save Project Modal -->
-<div id="saveProjectModal" class="hidden fixed inset-0 bg-black/70 items-center justify-center z-50">
-    <div class="bg-surface rounded-lg p-6 max-w-sm">
-        <h3 class="text-white font-mono mb-4">Save Project</h3>
-        <input type="text" id="projectName" class="form-input w-full px-4 py-2 rounded font-mono text-sm mb-4" placeholder="Project name...">
-        <div class="flex justify-end gap-3">
-            <button onclick="closeSaveProjectModal()" class="btn-secondary px-4 py-2 rounded text-sm">Cancel</button>
-            <button onclick="saveProject()" class="px-4 py-2 rounded text-sm bg-emerald-600 text-white">Save</button>
-        </div>
-    </div>
 </div>
 
 <!-- Loading Spinner -->
@@ -256,7 +245,6 @@
 
         renderForecastChart(results);
         document.getElementById('resultsSection').classList.remove('hidden');
-        document.getElementById('saveProjectBtn').classList.remove('hidden');
     }
 
     function renderForecastChart(forecasts) {
@@ -310,30 +298,5 @@
         });
     }
 
-    function showSaveProjectModal() {
-        if (!currentForecastData) return;
-        document.getElementById('projectName').value = 'Forecast ' + new Date().toISOString().split('T')[0];
-        document.getElementById('saveProjectModal').classList.remove('hidden');
-        document.getElementById('saveProjectModal').classList.add('flex');
-    }
-
-    function closeSaveProjectModal() {
-        document.getElementById('saveProjectModal').classList.add('hidden');
-    }
-
-    async function saveProject() {
-        const name = document.getElementById('projectName').value;
-        if (!name) return;
-        const results = Array.isArray(currentForecastData) ? currentForecastData : [currentForecastData];
-        try {
-            for (const f of results) {
-                await api.put(`/forecast/project/${f.project_name || 'default'}`, { new_name: name });
-            }
-            alert('Project saved!');
-            closeSaveProjectModal();
-        } catch (err) {
-            alert('Error: ' + err.message);
-        }
-    }
 </script>
 {% endblock %}

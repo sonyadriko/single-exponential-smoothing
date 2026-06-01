@@ -335,17 +335,3 @@ async def chart(request: Request, db: Session = Depends(get_db)):
     })
 
 
-@app.get("/projects")
-async def projects(request: Request, db: Session = Depends(get_db)):
-    """Project history page."""
-    if not is_authenticated(request):
-        return RedirectResponse(url="/login", status_code=302)
-
-    user = get_session_user(request)
-    from repositories.forecast_repository import ForecastRepository
-    forecast_repo = ForecastRepository(db)
-
-    return templates.TemplateResponse(request, "projects.html", {
-        "user": user,
-        "projects": forecast_repo.get_project_summaries()
-    })
