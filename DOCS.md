@@ -107,6 +107,59 @@ Visualisasi grafis — membandingkan data aktual penjualan dengan hasil forecast
 
 ---
 
+## Flow Website
+
+### Routing & Redirect (`main.py`)
+
+```
+GET /            → sudah login? redirect ke /overview (admin) atau /forecasts (owner)
+                   belum login? redirect ke /login
+GET /login       → sudah login? redirect sesuai role (lihat atas)
+                   belum login? tampilkan form login
+POST /login      → verifikasi username/password → buat session → redirect sesuai role
+GET /logout      → hapus session → redirect ke /login
+GET /admin       → redirect 301 ke /overview (alias lama)
+GET /owner       → redirect 301 ke /forecasts (alias lama)
+GET /dashboard   → redirect ke /overview atau /forecasts sesuai role
+```
+
+Tiap halaman fitur (`/overview`, `/products`, `/sales`, `/forecast`, `/forecasts`, `/chart`) melakukan 2 pengecekan berurutan sebelum render:
+1. `is_authenticated(request)` — belum login → redirect ke `/login`
+2. Untuk halaman admin-only (`/overview`, `/products`, `/sales`, `/forecast`) — kalau bukan admin → redirect ke `/forecasts`
+
+`/forecasts` dan `/chart` bisa diakses admin maupun owner.
+
+### Alur Request (per layer)
+
+```
+Browser (template / static/js/api.js)
+   │  fetch() dengan session cookie / Bearer token
+   ▼
+api/*.py (FastAPI router)         ← validasi request via schemas/*.py (Pydantic)
+   │
+   ▼
+services/*.py                    ← business logic (mis. calculate_ses_with_steps)
+   │
+   ▼
+repositories/*.py                 ← query SQLAlchemy ke DB
+   │
+   ▼
+models.py (ORM) ──> database.py (engine: SQLite/MySQL)
+```
+
+Web UI (Jinja2 template di `main.py`) dan REST API (`api/`) sama-sama lewat layer service/repository yang sama — bedanya hanya cara autentikasi (session cookie vs JWT Bearer).
+
+### Alur fitur Forecast (paling kompleks)
+
+1. User isi form di `/forecast`: pilih produk, alpha, rentang tanggal, tanggal target prediksi
+2. Frontend (`api.js`) → `POST /api/forecast`
+3. `api/forecast.py` ambil data `Sales` sesuai filter via repository, urutkan ascending by date
+4. `services/forecast_service.py::calculate_ses_with_steps()` jalankan rekursi SES, hasilkan `forecasts`, `steps`, `mape`
+5. Hasil + next period forecast disimpan ke tabel `Forecasts`
+6. Response dikirim balik ke frontend → render chart (aktual vs forecast) + tabel langkah perhitungan
+
+---
+
 ## Catatan Teknis
 
 - **MAPE** dihitung sebagai rata-rata `|Aktual - Forecast| / Aktual × 100%` per periode
