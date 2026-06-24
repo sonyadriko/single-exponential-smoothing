@@ -13,7 +13,7 @@ Login default:
 
 ---
 
-## 1. Overview `/overview`
+## 1. Dashboard `/dashboard`
 **Hanya admin.**
 
 Dashboard ringkasan kondisi data:
@@ -112,20 +112,19 @@ Visualisasi grafis — membandingkan data aktual penjualan dengan hasil forecast
 ### Routing & Redirect (`main.py`)
 
 ```
-GET /            → sudah login? redirect ke /overview (admin) atau /forecasts (owner)
+GET /            → sudah login? redirect ke /dashboard (admin) atau /forecasts (owner)
                    belum login? redirect ke /login
 GET /login       → sudah login? redirect sesuai role (lihat atas)
                    belum login? tampilkan form login
 POST /login      → verifikasi username/password → buat session → redirect sesuai role
 GET /logout      → hapus session → redirect ke /login
-GET /admin       → redirect 301 ke /overview (alias lama)
+GET /admin       → redirect 301 ke /dashboard (alias lama)
 GET /owner       → redirect 301 ke /forecasts (alias lama)
-GET /dashboard   → redirect ke /overview atau /forecasts sesuai role
 ```
 
-Tiap halaman fitur (`/overview`, `/products`, `/sales`, `/forecast`, `/forecasts`, `/chart`) melakukan 2 pengecekan berurutan sebelum render:
+Tiap halaman fitur (`/dashboard`, `/products`, `/sales`, `/forecast`, `/forecasts`, `/chart`) melakukan 2 pengecekan berurutan sebelum render:
 1. `is_authenticated(request)` — belum login → redirect ke `/login`
-2. Untuk halaman admin-only (`/overview`, `/products`, `/sales`, `/forecast`) — kalau bukan admin → redirect ke `/forecasts`
+2. Untuk halaman admin-only (`/dashboard`, `/products`, `/sales`, `/forecast`) — kalau bukan admin → redirect ke `/forecasts`
 
 `/forecasts` dan `/chart` bisa diakses admin maupun owner.
 

@@ -87,6 +87,43 @@ def calculate_mape(actual: List[float], forecast: List[float]) -> float:
     return float(np.mean(np.abs((actual_np[mask] - forecast_np[mask]) / actual_np[mask])) * 100)
 
 
+def compare_alphas(series: List[float], dates: List[str], alphas: List[float]) -> Dict[str, Any]:
+    """
+    Run SES for multiple alpha values on the same series and compare MAPE.
+
+    Args:
+        series: List of actual values
+        dates: List of date strings corresponding to each value
+        alphas: List of smoothing coefficients to compare
+
+    Returns:
+        Dictionary with per-alpha forecasts/MAPE/next-period forecast and the best alpha
+    """
+    by_alpha: Dict[str, Any] = {}
+
+    for alpha in alphas:
+        calc_result = calculate_ses_with_steps(series, dates, alpha)
+        forecasts = calc_result["forecasts"]
+        next_forecast = calculate_next_period_forecast(series[-1], forecasts[-1], alpha) if series else 0
+
+        by_alpha[f"{alpha:.1f}"] = {
+            "alpha": alpha,
+            "forecasts": forecasts,
+            "error_pct": [step["error_pct"] for step in calc_result["steps"]],
+            "mape": calc_result["mape"],
+            "next_period_forecast": next_forecast
+        }
+
+    best_key = min(by_alpha, key=lambda k: by_alpha[k]["mape"]) if by_alpha else None
+
+    return {
+        "dates": dates,
+        "actuals": series,
+        "by_alpha": by_alpha,
+        "best_alpha": by_alpha[best_key]["alpha"] if best_key else None
+    }
+
+
 def calculate_next_period_forecast(last_actual: float, last_forecast: float, alpha: float) -> float:
     """
     Calculate the forecast for the next period.

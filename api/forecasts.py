@@ -12,15 +12,19 @@ from schemas.forecasts import (
     ForecastOut,
     ForecastCreateResponse,
     ForecastProjectInfo,
-    ForecastProjectDetail
+    ForecastProjectDetail,
+    AlphaCompareRequest
 )
 from repositories.forecast_repository import ForecastRepository
 from repositories.sale_repository import SaleRepository
 from api.auth import get_current_user_or_session, get_admin_user_or_session
 from services.forecast_service import (
     calculate_ses_with_steps,
-    calculate_next_period_forecast
+    calculate_next_period_forecast,
+    compare_alphas
 )
+
+COMPARE_ALPHAS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
 router = APIRouter()
 
@@ -132,6 +136,36 @@ async def create_forecast(
         "overall_mape": total_mape / product_count if product_count > 0 else 0,
         "created_at": datetime.utcnow().isoformat()
     }
+
+
+@router.post("/compare-alpha")
+async def compare_alpha(
+    request: AlphaCompareRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_admin_user_or_session)
+):
+    """Compare SES results across alpha 0.1-0.9 for one product (admin only, not saved)."""
+    sale_repo = SaleRepository(db)
+    sales_query = [s for s in sale_repo.get_all_ordered() if s.product_name == request.product_name]
+
+    start_date = parse_date(request.start_date) if request.start_date else None
+    end_date = parse_date(request.end_date) if request.end_date else None
+
+    if start_date:
+        sales_query = [s for s in sales_query if s.date >= start_date]
+    if end_date:
+        sales_query = [s for s in sales_query if s.date <= end_date]
+
+    if not sales_query:
+        raise HTTPException(status_code=400, detail="No data available for the specified filters")
+
+    sales_query = sorted(sales_query, key=lambda s: s.date)
+    dates = [date_to_iso(s.date) for s in sales_query]
+    actuals = [s.qty for s in sales_query]
+
+    result = compare_alphas(actuals, dates, COMPARE_ALPHAS)
+    result["product_name"] = request.product_name
+    return result
 
 
 @router.get("/latest")

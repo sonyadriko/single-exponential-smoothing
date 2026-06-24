@@ -48,7 +48,7 @@ Default accounts (auto-created on first start): `admin`/`admin123`, `owner`/`own
 
 ## Role-Based Access
 
-- **Admin:** overview, products, sales, forecast (create), forecasts (view), chart
+- **Admin:** dashboard, products, sales, forecast (create), forecasts (view), chart
 - **Owner:** forecasts (view), chart
 - API: `get_current_user_or_session` (any auth), `get_admin_user_or_session` (admin only, 403 for owner)
 
@@ -83,7 +83,7 @@ Forecasts: id, project_name, created_at, created_by, alpha,
 
 **Forecasts:** `POST /api/forecast`, `GET /api/forecast/latest`, `GET /api/forecasts/history`, `GET /api/forecast/projects`, `GET /api/forecast/project/{project_name}`
 
-**Web UI:** `/`, `/login`, `/logout`, `/overview`, `/products`, `/sales`, `/forecast`, `/forecasts`, `/chart`
+**Web UI:** `/`, `/login`, `/logout`, `/dashboard`, `/products`, `/sales`, `/forecast`, `/forecasts`, `/chart`
 
 ## Authentication Detail
 

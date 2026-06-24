@@ -4,7 +4,7 @@ Aplikasi web full-stack untuk peramalan penjualan **Depot Jawara** menggunakan m
 
 ## Fitur
 
-- **Overview** — dashboard ringkasan data (admin)
+- **Dashboard** — ringkasan data (admin)
 - **Products** — kelola daftar produk (admin)
 - **Sales** — input & kelola data penjualan harian (admin)
 - **Forecast** — kalkulator SES: pilih produk, alpha, rentang tanggal → hasil forecast + MAPE + langkah perhitungan (admin)

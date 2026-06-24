@@ -12,6 +12,12 @@ class ForecastRequest(BaseModel):
     end_date: Optional[date | str] = None
 
 
+class AlphaCompareRequest(BaseModel):
+    product_name: str
+    start_date: Optional[date | str] = None
+    end_date: Optional[date | str] = None
+
+
 class CalculationStep(BaseModel):
     period: int
     date: str

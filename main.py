@@ -107,7 +107,7 @@ async def root(request: Request):
     """Root route - redirect to appropriate dashboard based on auth."""
     if is_authenticated(request):
         user = get_session_user(request)
-        default = "overview" if user.get("role") == "admin" else "forecasts"
+        default = "dashboard" if user.get("role") == "admin" else "forecasts"
         return RedirectResponse(url=f"/{default}", status_code=302)
     return RedirectResponse(url="/login", status_code=302)
 
@@ -117,7 +117,7 @@ async def login_page(request: Request):
     """Render login page."""
     if is_authenticated(request):
         user = get_session_user(request)
-        default = "overview" if user.get("role") == "admin" else "forecasts"
+        default = "dashboard" if user.get("role") == "admin" else "forecasts"
         return RedirectResponse(url=f"/{default}", status_code=302)
     return templates.TemplateResponse(request, "login.html")
 
@@ -143,7 +143,7 @@ async def login_submit(
 
     create_session(request, user.username, user.role)
     print(f"DEBUG login: session={dict(request.session)}, user={user.username}, role={user.role}")
-    default = "overview" if user.role == "admin" else "forecasts"
+    default = "dashboard" if user.role == "admin" else "forecasts"
     return RedirectResponse(url=f"/{default}", status_code=302)
 
 
@@ -160,7 +160,7 @@ async def logout(request: Request):
 @app.get("/admin/")
 async def legacy_admin_redirect(request: Request):
     """Redirect old /admin links to new dashboard."""
-    return RedirectResponse(url="/overview", status_code=301)
+    return RedirectResponse(url="/dashboard", status_code=301)
 
 
 @app.get("/owner")
@@ -169,21 +169,12 @@ async def legacy_owner_redirect(request: Request):
     """Redirect old /owner links to new dashboard."""
     return RedirectResponse(url="/forecasts", status_code=301)
 
-@app.get("/dashboard")
-async def dashboard_redirect(request: Request):
-    """Redirect /dashboard to default page."""
-    if is_authenticated(request):
-        user = get_session_user(request)
-        default = "overview" if user.get("role") == "admin" else "forecasts"
-        return RedirectResponse(url=f"/{default}", status_code=302)
-    return RedirectResponse(url="/login", status_code=302)
-
 
 # ============= DASHBOARD ROUTES =============
 
-@app.get("/overview")
-async def overview(request: Request, db: Session = Depends(get_db)):
-    """Admin overview page."""
+@app.get("/dashboard")
+async def dashboard(request: Request, db: Session = Depends(get_db)):
+    """Admin dashboard page."""
     if not is_authenticated(request):
         return RedirectResponse(url="/login", status_code=302)
 
@@ -199,7 +190,7 @@ async def overview(request: Request, db: Session = Depends(get_db)):
     sale_repo = SaleRepository(db)
     forecast_repo = ForecastRepository(db)
 
-    return templates.TemplateResponse(request, "overview.html", {
+    return templates.TemplateResponse(request, "dashboard.html", {
         "user": user,
         "total_products": product_repo.count(),
         "total_sales": sale_repo.count(),
@@ -264,6 +255,25 @@ async def forecast(request: Request, db: Session = Depends(get_db)):
     product_repo = ProductRepository(db)
 
     return templates.TemplateResponse(request, "forecast.html", {
+        "user": user,
+        "products": product_repo.get_all()
+    })
+
+
+@app.get("/forecast/compare")
+async def forecast_compare(request: Request, db: Session = Depends(get_db)):
+    """Compare-all-alphas page."""
+    if not is_authenticated(request):
+        return RedirectResponse(url="/login", status_code=302)
+
+    user = get_session_user(request)
+    if user.get("role") != "admin":
+        return RedirectResponse(url="/forecasts", status_code=302)
+
+    from repositories.product_repository import ProductRepository
+    product_repo = ProductRepository(db)
+
+    return templates.TemplateResponse(request, "forecast_compare.html", {
         "user": user,
         "products": product_repo.get_all()
     })
