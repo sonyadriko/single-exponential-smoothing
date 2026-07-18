@@ -6,7 +6,11 @@ def calculate_ses_with_steps(series: List[float], dates: List[str], alpha: float
     """
     Calculate Single Exponential Smoothing (SES) with detailed step-by-step calculations.
 
-    Formula: F(t+1) = alpha × A(t) + (1-alpha) × F(t)
+    Formula: F(t) = alpha × A(t) + (1-alpha) × F(t-1)
+
+    Each row's forecast folds in that same period's actual value (matches the
+    reference Excel workbook), so F(t) also serves directly as the forecast
+    for period t+1 — no separate lookahead step is needed.
 
     Args:
         series: List of actual values
@@ -37,34 +41,34 @@ def calculate_ses_with_steps(series: List[float], dates: List[str], alpha: float
 
     # Subsequent steps
     for i in range(1, len(series)):
-        prev_actual = series[i - 1]
-        prev_forecast = forecasts[i - 1]
         current_actual = series[i]
+        prev_forecast = forecasts[i - 1]
 
-        # Calculate forecast
-        next_forecast = alpha * prev_actual + (1 - alpha) * prev_forecast
-        forecasts.append(next_forecast)
+        # Calculate forecast (folds in this period's own actual)
+        current_forecast = alpha * current_actual + (1 - alpha) * prev_forecast
+        forecasts.append(current_forecast)
 
         # Calculate error
-        error = abs(current_actual - next_forecast)
+        error = abs(current_actual - current_forecast)
         error_pct = (error / current_actual * 100) if current_actual != 0 else 0
 
         steps.append({
             "period": i + 1,
             "date": dates[i] if dates and i < len(dates) else "N/A",
             "actual": current_actual,
-            "forecast": next_forecast,
-            "formula": f"F{i+1} = {alpha} × A{i} + (1-{alpha}) × F{i}",
-            "calculation": f"F{i+1} = {alpha} × {prev_actual} + {1-alpha} × {prev_forecast}",
-            "result": next_forecast,
+            "forecast": current_forecast,
+            "formula": f"F{i+1} = {alpha} × A{i+1} + (1-{alpha}) × F{i}",
+            "calculation": f"F{i+1} = {alpha} × {current_actual} + {1-alpha} × {prev_forecast}",
+            "result": current_forecast,
             "error": error,
             "error_pct": error_pct
         })
 
     return {
         "forecasts": forecasts,
-        "steps": steps,
-        "mape": calculate_mape(series, forecasts)
+        # First period has no real forecast error (F1 = A1 by definition), so it's excluded from MAPE
+        "mape": calculate_mape(series[1:], forecasts[1:]),
+        "steps": steps
     }
 
 
@@ -104,7 +108,7 @@ def compare_alphas(series: List[float], dates: List[str], alphas: List[float]) -
     for alpha in alphas:
         calc_result = calculate_ses_with_steps(series, dates, alpha)
         forecasts = calc_result["forecasts"]
-        next_forecast = calculate_next_period_forecast(series[-1], forecasts[-1], alpha) if series else 0
+        next_forecast = forecasts[-1] if forecasts else 0
 
         by_alpha[f"{alpha:.1f}"] = {
             "alpha": alpha,

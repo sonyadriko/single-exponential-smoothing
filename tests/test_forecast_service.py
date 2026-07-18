@@ -22,11 +22,11 @@ class TestCalculateSES:
         result = calculate_ses_with_steps(series, dates, 0.5)
 
         # F1 = A1 = 10
-        # F2 = 0.5 * 10 + 0.5 * 10 = 10
-        # F3 = 0.5 * 20 + 0.5 * 10 = 15
+        # F2 = 0.5 * 20 + 0.5 * 10 = 15
+        # F3 = 0.5 * 30 + 0.5 * 15 = 22.5
         assert result["forecasts"][0] == 10.0
-        assert result["forecasts"][1] == 10.0
-        assert result["forecasts"][2] == 15.0
+        assert result["forecasts"][1] == 15.0
+        assert result["forecasts"][2] == 22.5
 
     def test_different_alpha(self):
         """Test SES with different alpha values."""
@@ -36,8 +36,8 @@ class TestCalculateSES:
         # Alpha = 1.0 (full weight to actual)
         result_alpha_1 = calculate_ses_with_steps(series, dates, 1.0)
         # F1 = 10, F2 = 20, F3 = 30
-        assert result_alpha_1["forecasts"][1] == 10.0
-        assert result_alpha_1["forecasts"][2] == 20.0
+        assert result_alpha_1["forecasts"][1] == 20.0
+        assert result_alpha_1["forecasts"][2] == 30.0
 
         # Alpha = 0.0 (full weight to forecast)
         result_alpha_0 = calculate_ses_with_steps(series, dates, 0.0)

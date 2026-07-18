@@ -20,7 +20,6 @@ from repositories.sale_repository import SaleRepository
 from api.auth import get_current_user_or_session, get_admin_user_or_session
 from services.forecast_service import (
     calculate_ses_with_steps,
-    calculate_next_period_forecast,
     compare_alphas
 )
 
@@ -98,8 +97,8 @@ async def create_forecast(
         steps = calc_result["steps"]
         mape = calc_result["mape"]
 
-        # Calculate next period forecast
-        next_forecast = calculate_next_period_forecast(actuals[-1], forecasts[-1], request.alpha)
+        # Last forecast already folds in the final actual, so it doubles as the next-period forecast
+        next_forecast = forecasts[-1]
 
         # Save forecast to database (convert dates to ISO strings for JSON)
         forecast_repo.create_forecast(
