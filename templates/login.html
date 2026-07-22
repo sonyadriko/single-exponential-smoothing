@@ -19,8 +19,8 @@
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        bg: '#0f172a',
-                        surface: '#1e293b',
+                        bg: '#f1f5f9',
+                        surface: '#ffffff',
                         blue: {
                             400: '#3b82f6',
                             500: '#2563eb',
@@ -67,7 +67,7 @@
         }
 
         body {
-            background: #0f172a;
+            background: #f1f5f9;
             min-height: 100vh;
             overflow: hidden;
         }
@@ -80,8 +80,8 @@
             right: 0;
             bottom: 0;
             background-image:
-                linear-gradient(rgba(59, 130, 246, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
+                linear-gradient(rgba(59, 130, 246, 0.12) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.12) 1px, transparent 1px);
             background-size: 60px 60px;
             animation: gridMove 20s linear infinite;
         }
@@ -104,10 +104,10 @@
 
         /* Login card */
         .login-card {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border: 2px solid #334155;
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border: 2px solid #e2e8f0;
             box-shadow:
-                0 0 60px rgba(59, 130, 246, 0.15),
+                0 0 60px rgba(59, 130, 246, 0.1),
                 6px 6px 0 #3b82f6;
             position: relative;
             overflow: hidden;
@@ -131,9 +131,9 @@
 
         /* Input styling */
         .brutal-input {
-            background: #0f172a;
-            border: 2px solid #334155;
-            color: #f0f0f0;
+            background: #f8fafc;
+            border: 2px solid #cbd5e1;
+            color: #0f172a;
             transition: all 0.3s ease;
         }
         .brutal-input:focus {
@@ -233,24 +233,24 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-bold text-white mb-1 tracking-tight">DEPOT JAWARA</h1>
-                <p class="text-blue-400 font-mono text-sm tracking-widest glow-accent">SES FORECASTING SYSTEM</p>
+                <h1 class="text-3xl font-bold text-gray-900 mb-1 tracking-tight">DEPOT JAWARA</h1>
+                <p class="text-blue-600 font-mono text-sm tracking-widest glow-accent">SES FORECASTING SYSTEM</p>
             </div>
 
             {% if error %}
             <div class="error-alert rounded-lg p-4 mb-6 flex items-center gap-3">
-                <svg class="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <span class="text-red-300 text-sm">{{ error }}</span>
+                <span class="text-red-700 text-sm">{{ error }}</span>
             </div>
             {% endif %}
 
             <!-- Login Form -->
             <form method="post" action="/login" class="space-y-5">
                 <div class="animate-fade-in stagger-1">
-                    <label for="username" class="block text-sm font-medium text-gray-400 mb-2 font-mono tracking-wide">
-                        <span class="text-blue-400">&gt;</span> USERNAME
+                    <label for="username" class="block text-sm font-medium text-gray-500 mb-2 font-mono tracking-wide">
+                        <span class="text-blue-600">&gt;</span> USERNAME
                     </label>
                     <input
                         type="text"
@@ -264,8 +264,8 @@
                 </div>
 
                 <div class="animate-fade-in stagger-2">
-                    <label for="password" class="block text-sm font-medium text-gray-400 mb-2 font-mono tracking-wide">
-                        <span class="text-blue-400">&gt;</span> PASSWORD
+                    <label for="password" class="block text-sm font-medium text-gray-500 mb-2 font-mono tracking-wide">
+                        <span class="text-blue-600">&gt;</span> PASSWORD
                     </label>
                     <input
                         type="password"
@@ -287,19 +287,19 @@
                 <p class="text-xs text-gray-500 mb-2 text-center">// DEFAULT CREDENTIALS</p>
                 <div class="space-y-1 text-sm">
                     <div class="flex justify-between">
-                        <span class="text-gray-400">Admin:</span>
-                        <span class="text-blue-400">admin / admin123</span>
+                        <span class="text-gray-500">Admin:</span>
+                        <span class="text-blue-600">admin / admin123</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-400">Owner:</span>
-                        <span class="text-blue-400">owner / owner123</span>
+                        <span class="text-gray-500">Owner:</span>
+                        <span class="text-blue-600">owner / owner123</span>
                     </div>
                 </div>
             </div>
 
             <!-- Footer -->
             <div class="mt-6 text-center">
-                <p class="text-xs text-gray-600 font-mono">
+                <p class="text-xs text-gray-500 font-mono">
                     <span class="text-blue-600">[</span> SECURE ACCESS REQUIRED <span class="text-blue-600">]</span>
                 </p>
             </div>

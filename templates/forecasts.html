@@ -15,7 +15,7 @@
     .section-title h2 {
         font-size: 1.5rem;
         font-weight: 600;
-        color: white;
+        color: #0f172a;
     }
     .section-title .subtitle {
         font-size: 0.75rem;
@@ -36,27 +36,27 @@
     <table class="data-table w-full">
         <thead>
             <tr>
-                <th class="px-4 py-3 text-left text-blue-400 font-mono">Product</th>
-                <th class="px-4 py-3 text-left text-blue-400 font-mono">Forecast</th>
-                <th class="px-4 py-3 text-left text-blue-400 font-mono">Forecast Date</th>
-                <th class="px-4 py-3 text-left text-blue-400 font-mono">Alpha</th>
-                <th class="px-4 py-3 text-left text-blue-400 font-mono">MAPE</th>
-                <th class="px-4 py-3 text-left text-blue-400 font-mono">Created</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Product</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Forecast</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Forecast Date</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Alpha</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">MAPE</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Created</th>
             </tr>
         </thead>
-        <tbody class="text-gray-300">
+        <tbody class="text-gray-700">
             {% if latest_forecasts %}
                 {% set forecasts = latest_forecasts if latest_forecasts is iterable else [latest_forecasts] %}
                 {% for forecast in forecasts %}
                 <tr>
                     <td class="px-4 py-3 font-medium">{{ forecast.product_name }}</td>
-                    <td class="px-4 py-3 font-mono text-blue-400">{{ '%.1f' | format(forecast.next_period_forecast) }}</td>
+                    <td class="px-4 py-3 font-mono text-blue-600">{{ '%.1f' | format(forecast.next_period_forecast) }}</td>
                     <td class="px-4 py-3 font-mono">{{ forecast.next_period_date|date_format }}</td>
                     <td class="px-4 py-3 font-mono">{{ forecast.alpha }}</td>
                     <td class="px-4 py-3">
                         <span class="px-2 py-1 rounded text-xs font-mono
-                            {% if forecast.mape < 10 %}text-emerald-400 bg-emerald-400/10
-                            {% elif forecast.mape < 20 %}text-amber-400 bg-amber-400/10
+                            {% if forecast.mape < 10 %}text-emerald-600 bg-emerald-400/10
+                            {% elif forecast.mape < 20 %}text-amber-600 bg-amber-400/10
                             {% else %}text-red-500 bg-red-500/10{% endif %}">
                             {{ '%.1f%%' | format(forecast.mape) }}
                         </span>

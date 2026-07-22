@@ -15,7 +15,7 @@
     .section-title h2 {
         font-size: 1.5rem;
         font-weight: 600;
-        color: white;
+        color: #0f172a;
     }
     .section-title .subtitle {
         font-size: 0.75rem;
@@ -41,7 +41,7 @@
 <div class="bg-surface2 rounded-lg p-6 mb-6">
     <div class="grid grid-cols-3 gap-6 mb-6">
         <div>
-            <label class="block text-sm text-gray-400 mb-2 font-mono">Product</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Product</label>
             <select id="productSelect" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
                 {% for product in products %}
                 <option value="{{ product.name }}">{{ product.name }}</option>
@@ -49,33 +49,33 @@
             </select>
         </div>
         <div>
-            <label class="block text-sm text-gray-400 mb-2 font-mono">Start Date</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Start Date</label>
             <input type="date" id="startDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
         </div>
         <div>
-            <label class="block text-sm text-gray-400 mb-2 font-mono">End Date</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">End Date</label>
             <input type="date" id="endDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
         </div>
     </div>
     <div class="flex gap-4">
         <button onclick="compareAlphas()" class="btn-primary px-6 py-2 rounded">Compare</button>
-        <button onclick="resetFilters()" class="px-4 py-2 rounded text-sm border border-border text-gray-400 hover:text-white">Reset Filters</button>
+        <button onclick="resetFilters()" class="px-4 py-2 rounded text-sm border border-border text-gray-500 hover:text-gray-900">Reset Filters</button>
     </div>
 </div>
 
 <div id="resultsSection" class="hidden">
     <div class="bg-surface2 rounded-lg p-4 mb-6 flex items-center gap-3">
         <span class="text-xs text-gray-500 font-mono">ALPHA TERBAIK</span>
-        <span id="bestAlpha" class="text-xl font-bold text-emerald-400">-</span>
+        <span id="bestAlpha" class="text-xl font-bold text-emerald-600">-</span>
         <span class="text-xs text-gray-500 font-mono">(MAPE terkecil)</span>
     </div>
 
     <div class="bg-surface2 rounded-lg p-4 overflow-x-auto">
         <table id="compareTable" class="w-full text-sm">
             <thead>
-                <tr id="compareTableHead" class="text-indigo-400 font-mono text-xs"></tr>
+                <tr id="compareTableHead" class="text-indigo-600 font-mono text-xs"></tr>
             </thead>
-            <tbody id="compareTableBody" class="text-gray-300"></tbody>
+            <tbody id="compareTableBody" class="text-gray-700"></tbody>
             <tfoot>
                 <tr id="compareTableMape" class="font-mono text-xs border-t border-border"></tr>
             </tfoot>
@@ -86,11 +86,11 @@
 <!-- Loading Spinner -->
 <div id="loadingSpinner" class="hidden fixed inset-0 bg-black/70 items-center justify-center z-50">
     <div class="bg-surface rounded-lg p-4 flex items-center gap-3">
-        <svg class="animate-spin h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24">
+        <svg class="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span class="text-gray-300 font-mono text-sm">Calculating...</span>
+        <span class="text-gray-700 font-mono text-sm">Calculating...</span>
     </div>
 </div>
 {% endblock %}
@@ -168,7 +168,7 @@
                 const entry = byAlpha[a];
                 const val = entry ? fmt(entry.forecasts[i]) : '-';
                 const isBest = parseFloat(a) === bestAlpha;
-                row += `<td class="px-2 py-1 text-blue-400 ${isBest ? 'best-alpha-col' : ''}">${val}</td>`;
+                row += `<td class="px-2 py-1 text-blue-600 ${isBest ? 'best-alpha-col' : ''}">${val}</td>`;
             });
             row += '</tr>';
             body.innerHTML += row;
@@ -180,7 +180,7 @@
             const entry = byAlpha[a];
             const mape = entry ? fmt(entry.mape) : '-';
             const isBest = parseFloat(a) === bestAlpha;
-            mapeHtml += `<td class="px-2 py-1 font-bold ${isBest ? 'text-emerald-400 best-alpha-col' : 'text-gray-300'}">${mape}%</td>`;
+            mapeHtml += `<td class="px-2 py-1 font-bold ${isBest ? 'text-emerald-600 best-alpha-col' : 'text-gray-700'}">${mape}%</td>`;
         });
         mapeRow.innerHTML = mapeHtml;
 

@@ -20,8 +20,11 @@ from repositories.sale_repository import SaleRepository
 from api.auth import get_current_user_or_session, get_admin_user_or_session
 from services.forecast_service import (
     calculate_ses_with_steps,
-    compare_alphas
+    compare_alphas,
+    generate_future_forecasts
 )
+
+FUTURE_FORECAST_PERIODS = 3
 
 COMPARE_ALPHAS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
@@ -100,6 +103,10 @@ async def create_forecast(
         # Last forecast already folds in the final actual, so it doubles as the next-period forecast
         next_forecast = forecasts[-1]
 
+        # Project a few more days forward (flat SES projection) beyond the requested next period
+        future_start = date_to_iso(next_period_date) or dates[-1]
+        future_forecasts = generate_future_forecasts(next_forecast, future_start, FUTURE_FORECAST_PERIODS)
+
         # Save forecast to database (convert dates to ISO strings for JSON)
         forecast_repo.create_forecast(
             project_name=request.project_name,
@@ -114,7 +121,8 @@ async def create_forecast(
                 "dates": [date_to_iso(d) for d in dates],
                 "actuals": actuals,
                 "forecasts": forecasts,
-                "steps": steps
+                "steps": steps,
+                "future_forecasts": future_forecasts
             }
         )
 
@@ -125,7 +133,8 @@ async def create_forecast(
             "steps": steps,
             "mape": mape,
             "next_period_forecast": next_forecast,
-            "next_period_date": date_to_iso(next_period_date)
+            "next_period_date": date_to_iso(next_period_date),
+            "future_forecasts": future_forecasts
         }
         total_mape += mape
         product_count += 1
@@ -191,7 +200,8 @@ async def get_latest_forecast(
         "dates": steps.get("dates", []),
         "actuals": steps.get("actuals", []),
         "forecasts": steps.get("forecasts", []),
-        "steps": steps.get("steps", [])
+        "steps": steps.get("steps", []),
+        "future_forecasts": steps.get("future_forecasts", [])
     }
 
 
@@ -247,7 +257,8 @@ async def get_forecast_project(
             "steps": steps.get("steps", []),
             "mape": f.mape,
             "next_period_forecast": f.next_period_forecast,
-            "next_period_date": f.next_period_date
+            "next_period_date": f.next_period_date,
+            "future_forecasts": steps.get("future_forecasts", [])
         }
 
     overall_mape = sum(f.mape for f in forecasts) / len(forecasts) if forecasts else 0

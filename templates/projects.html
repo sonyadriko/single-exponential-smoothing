@@ -15,7 +15,7 @@
     .section-title h2 {
         font-size: 1.5rem;
         font-weight: 600;
-        color: white;
+        color: #0f172a;
     }
     .section-title .subtitle {
         font-size: 0.75rem;
@@ -36,10 +36,10 @@
     {% for project in projects %}
     <div class="bg-surface2 rounded-lg p-4 border border-border hover:border-blue-400/50 transition">
         <div class="flex justify-between items-start mb-3">
-            <h4 class="font-mono text-white truncate flex-1">{{ project.project_name }}</h4>
+            <h4 class="font-mono text-gray-900 truncate flex-1">{{ project.project_name }}</h4>
             {% if user.role == 'admin' %}
             <div class="flex gap-1">
-                <button onclick="deleteProject('{{ project.project_name }}')" class="text-red-400 hover:text-red-300 p-1">
+                <button onclick="deleteProject('{{ project.project_name }}')" class="text-red-600 hover:text-red-700 p-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
@@ -49,15 +49,15 @@
         </div>
         <div class="grid grid-cols-2 gap-2 text-sm">
             <div class="text-gray-500 text-xs font-mono">Alpha</div>
-            <div class="text-right font-mono text-blue-400">{{ project.alpha }}</div>
+            <div class="text-right font-mono text-blue-600">{{ project.alpha }}</div>
             <div class="text-gray-500 text-xs font-mono">Forecasts</div>
             <div class="text-right">{{ project.forecast_count }}</div>
             <div class="text-gray-500 text-xs font-mono">MAPE</div>
-            <div class="text-right font-mono {% if project.overall_mape < 10 %}text-emerald-400{% elif project.overall_mape < 20 %}text-amber-400{% else %}text-red-500{% endif %}">
+            <div class="text-right font-mono {% if project.overall_mape < 10 %}text-emerald-600{% elif project.overall_mape < 20 %}text-amber-600{% else %}text-red-500{% endif %}">
                 {{ '%.1f%%' % project.overall_mape if project.overall_mape else 'N/A' }}
             </div>
             <div class="text-gray-500 text-xs font-mono">Created</div>
-            <div class="text-right text-gray-400 text-xs">{{ project.created_at|date_format }}</div>
+            <div class="text-right text-gray-500 text-xs">{{ project.created_at|date_format }}</div>
         </div>
     </div>
     {% endfor %}

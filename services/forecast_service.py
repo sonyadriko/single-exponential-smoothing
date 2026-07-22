@@ -1,4 +1,5 @@
 from typing import List, Dict, Any
+from datetime import datetime, timedelta
 import numpy as np
 
 
@@ -126,6 +127,31 @@ def compare_alphas(series: List[float], dates: List[str], alphas: List[float]) -
         "by_alpha": by_alpha,
         "best_alpha": by_alpha[best_key]["alpha"] if best_key else None
     }
+
+
+def generate_future_forecasts(last_forecast: float, start_date: str, periods: int = 3) -> List[Dict[str, Any]]:
+    """
+    Project the SES forecast forward for `periods` days beyond the available actual data.
+
+    SES carries no trend/seasonality term, so every period beyond the last actual
+    value repeats the same forecast (flat projection) until new actuals arrive.
+
+    Args:
+        last_forecast: The most recent computed forecast value (F(t))
+        start_date: ISO date (YYYY-MM-DD) of the first projected period
+        periods: Number of future periods to project
+
+    Returns:
+        List of {"date": ..., "forecast": ...} dicts, one per projected day
+    """
+    base_date = datetime.fromisoformat(start_date).date()
+    return [
+        {
+            "date": (base_date + timedelta(days=i)).isoformat(),
+            "forecast": last_forecast
+        }
+        for i in range(periods)
+    ]
 
 
 def calculate_next_period_forecast(last_actual: float, last_forecast: float, alpha: float) -> float:

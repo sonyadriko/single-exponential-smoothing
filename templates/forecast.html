@@ -15,7 +15,7 @@
     .section-title h2 {
         font-size: 1.5rem;
         font-weight: 600;
-        color: white;
+        color: #0f172a;
     }
     .section-title .subtitle {
         font-size: 0.75rem;
@@ -35,14 +35,16 @@
 <div class="bg-surface2 rounded-lg p-6 mb-6">
     <div class="grid grid-cols-2 gap-6 mb-6">
         <div>
-            <label class="block text-sm text-gray-400 mb-2 font-mono">
-                Alpha: <span id="alphaValue" class="text-white">0.3</span>
-            </label>
-            <input type="range" id="alphaSlider" min="0.1" max="0.9" step="0.1" value="0.3"
-                class="w-full h-2 bg-surface rounded-lg appearance-none cursor-pointer">
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Alpha (MAPE per pilihan)</label>
+            <select id="alphaSelect" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
+                {% for a in ['0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9'] %}
+                <option value="{{ a }}" {% if a == '0.3' %}selected{% endif %}>Alpha {{ a }}</option>
+                {% endfor %}
+            </select>
+            <p id="alphaMapeHint" class="text-xs text-gray-500 mt-1 font-mono">// Pilih produk untuk melihat MAPE tiap alpha</p>
         </div>
         <div>
-            <label class="block text-sm text-gray-400 mb-2 font-mono">Product</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Product</label>
             <select id="productSelect" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
                 <option value="all">All Products</option>
                 {% for product in products %}
@@ -53,24 +55,24 @@
     </div>
     <div class="grid grid-cols-3 gap-6 mb-6">
         <div>
-            <label class="block text-sm text-gray-400 mb-2 font-mono">Start Date</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Start Date</label>
             <input type="date" id="startDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
             <p class="text-xs text-gray-500 mt-1 font-mono">Filter data dari tanggal ini</p>
         </div>
         <div>
-            <label class="block text-sm text-gray-400 mb-2 font-mono">End Date</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">End Date</label>
             <input type="date" id="endDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
             <p class="text-xs text-gray-500 mt-1 font-mono">Filter data sampai tanggal ini</p>
         </div>
         <div>
-            <label class="block text-sm text-gray-400 mb-2 font-mono">Forecast Date</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Forecast Date</label>
             <input type="date" id="nextPeriodDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
             <p class="text-xs text-gray-500 mt-1 font-mono">Tanggal hasil forecast</p>
         </div>
     </div>
     <div class="flex gap-4">
         <button onclick="calculateForecast()" class="btn-primary px-6 py-2 rounded">Calculate Forecast</button>
-        <button onclick="resetFilters()" class="px-4 py-2 rounded text-sm border border-border text-gray-400 hover:text-white">Reset Filters</button>
+        <button onclick="resetFilters()" class="px-4 py-2 rounded text-sm border border-border text-gray-500 hover:text-gray-900">Reset Filters</button>
     </div>
 </div>
 
@@ -78,41 +80,46 @@
     <div class="grid grid-cols-4 gap-4 mb-6">
         <div class="bg-surface2 rounded-lg p-4 text-center">
             <p class="text-xs text-gray-500 font-mono mb-1">FORECAST</p>
-            <p id="nextPeriodForecast" class="text-2xl font-bold text-white">-</p>
+            <p id="nextPeriodForecast" class="text-2xl font-bold text-gray-900">-</p>
         </div>
         <div class="bg-surface2 rounded-lg p-4 text-center">
             <p class="text-xs text-gray-500 font-mono mb-1">DATE</p>
-            <p id="forecastDate" class="text-lg font-bold text-blue-400">-</p>
+            <p id="forecastDate" class="text-lg font-bold text-blue-600">-</p>
         </div>
         <div class="bg-surface2 rounded-lg p-4 text-center">
             <p class="text-xs text-gray-500 font-mono mb-1">ALPHA</p>
-            <p id="alphaUsed" class="text-2xl font-bold text-blue-400">-</p>
+            <p id="alphaUsed" class="text-2xl font-bold text-blue-600">-</p>
         </div>
         <div class="bg-surface2 rounded-lg p-4 text-center">
             <p class="text-xs text-gray-500 font-mono mb-1">MAPE</p>
             <p id="mapeValue" class="text-2xl font-bold">-</p>
         </div>
     </div>
-    <div class="grid grid-cols-2 gap-6">
+    <div class="grid grid-cols-2 gap-6 mb-6">
         <div class="bg-surface2 rounded-lg p-4">
-            <h4 class="text-sm font-medium text-white mb-3 font-mono">Chart</h4>
+            <h4 class="text-sm font-medium text-gray-900 mb-3 font-mono">Chart</h4>
             <div class="h-64"><canvas id="forecastChart"></canvas></div>
         </div>
         <div class="bg-surface2 rounded-lg p-4">
-            <h4 class="text-sm font-medium text-white mb-3 font-mono">Steps</h4>
+            <h4 class="text-sm font-medium text-gray-900 mb-3 font-mono">Steps</h4>
             <div class="max-h-64 overflow-y-auto">
                 <table class="w-full text-sm">
                     <thead class="sticky top-0 bg-surface2">
                         <tr>
-                            <th class="px-2 py-1 text-left text-indigo-400 font-mono text-xs">Period</th>
-                            <th class="px-2 py-1 text-left text-indigo-400 font-mono text-xs">Actual</th>
-                            <th class="px-2 py-1 text-left text-indigo-400 font-mono text-xs">Forecast</th>
+                            <th class="px-2 py-1 text-left text-indigo-600 font-mono text-xs">Period</th>
+                            <th class="px-2 py-1 text-left text-indigo-600 font-mono text-xs">Actual</th>
+                            <th class="px-2 py-1 text-left text-indigo-600 font-mono text-xs">Forecast</th>
                         </tr>
                     </thead>
-                    <tbody id="calculationStepsBody" class="text-gray-300"></tbody>
+                    <tbody id="calculationStepsBody" class="text-gray-700"></tbody>
                 </table>
             </div>
         </div>
+    </div>
+
+    <div class="bg-surface2 rounded-lg p-4">
+        <h4 class="text-sm font-medium text-gray-900 mb-3 font-mono">Peramalan 3 Hari ke Depan</h4>
+        <div id="futureForecastGrid" class="grid grid-cols-3 gap-4"></div>
     </div>
 </div>
 
@@ -121,11 +128,11 @@
 <!-- Loading Spinner -->
 <div id="loadingSpinner" class="hidden fixed inset-0 bg-black/70 items-center justify-center z-50">
     <div class="bg-surface rounded-lg p-4 flex items-center gap-3">
-        <svg class="animate-spin h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24">
+        <svg class="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span class="text-gray-300 font-mono text-sm">Calculating...</span>
+        <span class="text-gray-700 font-mono text-sm">Calculating...</span>
     </div>
 </div>
 {% endblock %}
@@ -133,9 +140,53 @@
 {% block scripts %}
 <script src="/static/js/api.js"></script>
 <script>
-    document.getElementById('alphaSlider')?.addEventListener('input', (e) => {
-        document.getElementById('alphaValue').textContent = e.target.value;
-    });
+    const ALL_ALPHAS = ['0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9'];
+
+    async function refreshAlphaMape() {
+        const alphaSelect = document.getElementById('alphaSelect');
+        const hint = document.getElementById('alphaMapeHint');
+        const product = document.getElementById('productSelect').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const previousValue = alphaSelect.value;
+
+        const productNames = product === 'all'
+            ? Array.from(document.getElementById('productSelect').options)
+                .map(o => o.value).filter(v => v !== 'all')
+            : [product];
+
+        if (productNames.length === 0) return;
+
+        try {
+            const perProduct = await Promise.all(productNames.map(name =>
+                api.post('/api/forecast/compare-alpha', {
+                    product_name: name,
+                    start_date: startDate || null,
+                    end_date: endDate || null
+                }).catch(() => null)
+            ));
+            const valid = perProduct.filter(Boolean);
+            if (valid.length === 0) {
+                hint.textContent = '// Tidak ada data untuk menghitung MAPE';
+                return;
+            }
+
+            alphaSelect.innerHTML = ALL_ALPHAS.map(a => {
+                const mapes = valid.map(r => r.by_alpha?.[a]?.mape).filter(v => typeof v === 'number');
+                const avgMape = mapes.length ? mapes.reduce((s, v) => s + v, 0) / mapes.length : null;
+                const label = avgMape !== null ? `Alpha ${a} — MAPE ${avgMape.toFixed(1)}%` : `Alpha ${a}`;
+                return `<option value="${a}">${label}</option>`;
+            }).join('');
+            alphaSelect.value = ALL_ALPHAS.includes(previousValue) ? previousValue : '0.3';
+            hint.textContent = '// MAPE dihitung dari data pada rentang tanggal terpilih';
+        } catch (err) {
+            hint.textContent = '// Gagal memuat MAPE: ' + err.message;
+        }
+    }
+
+    document.getElementById('productSelect')?.addEventListener('change', refreshAlphaMape);
+    document.getElementById('startDate')?.addEventListener('change', refreshAlphaMape);
+    document.getElementById('endDate')?.addEventListener('change', refreshAlphaMape);
 
     // Initialize dates
     const tomorrow = new Date();
@@ -153,6 +204,7 @@
     if (document.getElementById('endDate')) {
         document.getElementById('endDate').value = today.toISOString().split('T')[0];
     }
+    refreshAlphaMape();
 
     let currentForecastData = null;
     let forecastChart = null;
@@ -175,7 +227,7 @@
     }
 
     async function calculateForecast() {
-        const alpha = parseFloat(document.getElementById('alphaSlider').value);
+        const alpha = parseFloat(document.getElementById('alphaSelect').value);
         const product = document.getElementById('productSelect').value;
         const nextPeriodDate = document.getElementById('nextPeriodDate').value;
         const startDate = document.getElementById('startDate').value;
@@ -208,7 +260,7 @@
     function displayForecastResults(data) {
         let results = [];
         if (data.results) {
-            results = Object.values(data.results);
+            results = Object.entries(data.results).map(([name, f]) => ({ product_name: name, ...f }));
         } else if (Array.isArray(data)) {
             results = data;
         } else {
@@ -224,12 +276,11 @@
         document.getElementById('alphaUsed').textContent = first.alpha || data.alpha || 0.3;
         const mapeEl = document.getElementById('mapeValue');
         mapeEl.textContent = Math.round(avgMape * 10) / 10 + '%';
-        mapeEl.className = 'text-2xl font-bold ' + (avgMape < 10 ? 'text-emerald-400' : avgMape < 20 ? 'text-amber-400' : 'text-red-500');
+        mapeEl.className = 'text-2xl font-bold ' + (avgMape < 10 ? 'text-emerald-600' : avgMape < 20 ? 'text-amber-600' : 'text-red-500');
 
         const tbody = document.getElementById('calculationStepsBody');
         tbody.innerHTML = '';
         results.forEach(f => {
-            const steps = f.steps || [];
             const dates = f.dates || [];
             const actuals = f.actuals || [];
             const forecastsArr = f.forecasts || [];
@@ -238,14 +289,33 @@
                 tbody.innerHTML += `<tr class="border-b border-border">
                     <td class="px-2 py-1 font-mono text-xs">${dates[i]}</td>
                     <td class="px-2 py-1">${actuals[i]}</td>
-                    <td class="px-2 py-1 text-blue-400">${Math.round(forecastsArr[i] * 10) / 10}</td>
+                    <td class="px-2 py-1 text-orange-600">${Math.round(forecastsArr[i] * 10) / 10}</td>
                 </tr>`;
             }
+        });
+
+        const futureGrid = document.getElementById('futureForecastGrid');
+        futureGrid.innerHTML = '';
+        (first.future_forecasts || []).forEach(fc => {
+            futureGrid.innerHTML += `
+                <div class="bg-surface rounded-lg p-3 text-center border border-border">
+                    <p class="text-xs text-gray-500 font-mono mb-1">${fc.date}</p>
+                    <p class="text-lg font-bold text-orange-600">${Math.round(fc.forecast * 10) / 10}</p>
+                </div>`;
         });
 
         renderForecastChart(results);
         document.getElementById('resultsSection').classList.remove('hidden');
     }
+
+    // Bright, non-blue palette: each product gets a color for "Actual" paired
+    // with a visibly different color for its "Forecast" line.
+    const FORECAST_CHART_PAIRS = [
+        { actual: '#059669', forecast: '#f97316' }, // emerald vs orange
+        { actual: '#db2777', forecast: '#65a30d' }, // pink vs lime
+        { actual: '#7c3aed', forecast: '#eab308' }, // violet vs yellow
+        { actual: '#0d9488', forecast: '#dc2626' }, // teal vs red
+    ];
 
     function renderForecastChart(forecasts) {
         const ctx = document.getElementById('forecastChart')?.getContext('2d');
@@ -253,23 +323,29 @@
         if (forecastChart) forecastChart.destroy();
 
         const datasets = [];
-        const colors = ['#3b82f6', '#6366f1', '#10b981', '#f59e0b'];
+        const baseLabels = forecasts[0]?.dates || [];
+        const futureLabels = (forecasts[0]?.future_forecasts || []).map(fc => fc.date);
+        const labels = [...baseLabels, ...futureLabels];
 
         forecasts.forEach((f, i) => {
-            const color = colors[i % colors.length];
+            const pair = FORECAST_CHART_PAIRS[i % FORECAST_CHART_PAIRS.length];
+            const actuals = f.actuals || [];
+            const forecastsArr = f.forecasts || [];
+            const future = f.future_forecasts || [];
+
             datasets.push({
                 label: f.product_name + ' - Actual',
-                data: f.actuals || [],
-                borderColor: color,
-                backgroundColor: color + '30',
+                data: [...actuals, ...future.map(() => null)],
+                borderColor: pair.actual,
+                backgroundColor: pair.actual + '30',
                 borderWidth: 2,
                 pointRadius: 3,
                 tension: 0.1
             });
             datasets.push({
                 label: f.product_name + ' - Forecast',
-                data: f.forecasts || [],
-                borderColor: color,
+                data: [...forecastsArr, ...future.map(fc => fc.forecast)],
+                borderColor: pair.forecast,
                 backgroundColor: 'transparent',
                 borderWidth: 2,
                 borderDash: [5, 5],
@@ -279,9 +355,7 @@
             });
         });
 
-        const labels = forecasts[0]?.dates || [];
-
-        Chart.defaults.color = '#6b7280';
+        Chart.defaults.color = '#475569';
         Chart.defaults.font.family = 'JetBrains Mono';
         forecastChart = new Chart(ctx, {
             type: 'line',
@@ -289,10 +363,10 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 10 } } } },
+                plugins: { legend: { position: 'bottom', labels: { color: '#475569', font: { size: 10 } } } },
                 scales: {
-                    x: { grid: { color: '#334155' }, ticks: { color: '#64748b' } },
-                    y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#64748b' } }
+                    x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+                    y: { beginAtZero: true, grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } }
                 }
             }
         });

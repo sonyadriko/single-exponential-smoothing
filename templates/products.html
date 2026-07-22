@@ -15,7 +15,7 @@
     .section-title h2 {
         font-size: 1.5rem;
         font-weight: 600;
-        color: white;
+        color: #0f172a;
     }
     .section-title .subtitle {
         font-size: 0.75rem;
@@ -49,21 +49,21 @@
     <table class="data-table w-full">
         <thead>
             <tr>
-                <th class="px-4 py-3 text-left text-blue-400 font-mono">ID</th>
-                <th class="px-4 py-3 text-left text-blue-400 font-mono">Product Name</th>
-                <th class="px-4 py-3 text-left text-blue-400 font-mono">Created</th>
-                <th class="px-4 py-3 text-right text-blue-400 font-mono">Action</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">ID</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Product Name</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Created</th>
+                <th class="px-4 py-3 text-right text-blue-600 font-mono">Action</th>
             </tr>
         </thead>
-        <tbody class="text-gray-300">
+        <tbody class="text-gray-700">
             {% for product in products %}
             <tr data-product-id="{{ product.id }}">
-                <td class="px-4 py-3 font-mono text-sm text-blue-400">#{{ product.id }}</td>
+                <td class="px-4 py-3 font-mono text-sm text-blue-600">#{{ product.id }}</td>
                 <td class="px-4 py-3">{{ product.name }}</td>
                 <td class="px-4 py-3 text-sm text-gray-500 font-mono">{{ product.created_at.strftime('%Y-%m-%d') if product.created_at else 'N/A' }}</td>
                 <td class="px-4 py-3 text-right">
                     <button onclick="deleteProduct({{ product.id }}, '{{ product.name }}')"
-                        class="text-red-400 hover:text-red-300 text-sm">
+                        class="text-red-600 hover:text-red-700 text-sm">
                         Delete
                     </button>
                 </td>
@@ -81,7 +81,7 @@
 <!-- Delete Product Modal -->
 <div id="deleteProductModal" class="hidden fixed inset-0 bg-black/70 items-center justify-center z-50">
     <div class="bg-surface rounded-lg p-6 max-w-sm">
-        <p class="text-gray-400 mb-4">Delete <span id="deleteProductName" class="text-red-400 font-mono"></span>?</p>
+        <p class="text-gray-500 mb-4">Delete <span id="deleteProductName" class="text-red-600 font-mono"></span>?</p>
         <div class="flex justify-end gap-3">
             <button onclick="closeDeleteProductModal()" class="btn-secondary px-4 py-2 rounded text-sm">Cancel</button>
             <button onclick="confirmDeleteProduct()" class="px-4 py-2 rounded text-sm bg-red-600 text-white">Delete</button>
@@ -106,13 +106,13 @@
         try {
             await api.post('/api/products', { name });
             msg.textContent = '// Product added';
-            msg.className = 'mt-2 text-sm font-mono text-emerald-400';
+            msg.className = 'mt-2 text-sm font-mono text-emerald-600';
             msg.classList.remove('hidden');
             document.getElementById('productName').value = '';
             setTimeout(() => window.location.reload(), 500);
         } catch (err) {
             msg.textContent = '// Error: ' + err.message;
-            msg.className = 'mt-2 text-sm font-mono text-red-400';
+            msg.className = 'mt-2 text-sm font-mono text-red-600';
             msg.classList.remove('hidden');
         }
     });
