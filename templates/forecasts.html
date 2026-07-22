@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Riwayat Forecast - Depot Jawara{% endblock %}
+{% block title %}Riwayat Ramalan - Depot Jawara{% endblock %}
 
 {% set active_page = 'forecasts' %}
 
@@ -28,20 +28,20 @@
 
 {% block content %}
 <div class="section-title">
-    <h2>Riwayat Forecast</h2>
-    <span class="subtitle">CURRENT PREDICTIONS</span>
+    <h2>Riwayat Ramalan</h2>
+    <span class="subtitle">RAMALAN TERKINI</span>
 </div>
 
 <div class="bg-surface rounded-lg overflow-hidden">
     <table class="data-table w-full">
         <thead>
             <tr>
-                <th class="px-4 py-3 text-left text-blue-600 font-mono">Product</th>
-                <th class="px-4 py-3 text-left text-blue-600 font-mono">Forecast</th>
-                <th class="px-4 py-3 text-left text-blue-600 font-mono">Forecast Date</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Produk</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Ramalan</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Tanggal Ramalan</th>
                 <th class="px-4 py-3 text-left text-blue-600 font-mono">Alpha</th>
                 <th class="px-4 py-3 text-left text-blue-600 font-mono">MAPE</th>
-                <th class="px-4 py-3 text-left text-blue-600 font-mono">Created</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Dibuat</th>
             </tr>
         </thead>
         <tbody class="text-gray-700">
@@ -66,7 +66,7 @@
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="6" class="px-4 py-8 text-center text-gray-500 font-mono">// No forecasts available</td>
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-500 font-mono">// Belum ada ramalan</td>
                 </tr>
             {% endif %}
         </tbody>

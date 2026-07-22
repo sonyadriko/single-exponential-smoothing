@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Chart - Depot Jawara{% endblock %}
+{% block title %}Grafik - Depot Jawara{% endblock %}
 
 {% set active_page = 'chart' %}
 
@@ -53,23 +53,23 @@
 
 {% block content %}
 <div class="section-title">
-    <h2>Forecast Chart</h2>
-    <span class="subtitle">VISUALIZATION</span>
+    <h2>Grafik Ramalan</h2>
+    <span class="subtitle">VISUALISASI</span>
 </div>
 
 {% if latest_forecasts %}
 <div class="filter-bar">
-    <label>PROJECT:</label>
+    <label>PROYEK:</label>
     <select id="projectFilter" onchange="filterChart()">
-        <option value="all">All Projects</option>
+        <option value="all">Semua Proyek</option>
         {% for project in projects %}
         <option value="{{ project.project_name }}">{{ project.project_name }}</option>
         {% endfor %}
     </select>
 
-    <label style="margin-left: 1rem;">PRODUCT:</label>
+    <label style="margin-left: 1rem;">PRODUK:</label>
     <select id="productFilter" onchange="filterChart()">
-        <option value="all">All Products</option>
+        <option value="all">Semua Produk</option>
         {% set seen_products = [] %}
         {% for f in latest_forecasts %}
             {% if f.product_name not in seen_products %}
@@ -86,7 +86,7 @@
     </div>
 </div>
 {% else %}
-<div class="text-center py-12 text-gray-500 font-mono">// No data to display</div>
+<div class="text-center py-12 text-gray-500 font-mono">// Tidak ada data untuk ditampilkan</div>
 {% endif %}
 {% endblock %}
 

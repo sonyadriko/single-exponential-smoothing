@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Buat Forecast - Depot Jawara{% endblock %}
+{% block title %}Buat Ramalan - Depot Jawara{% endblock %}
 
 {% set active_page = 'forecast' %}
 
@@ -28,8 +28,8 @@
 
 {% block content %}
 <div class="section-title">
-    <h2>Buat Forecast</h2>
-    <span class="subtitle">CALCULATE & SAVE</span>
+    <h2>Buat Ramalan</h2>
+    <span class="subtitle">HITUNG & SIMPAN</span>
 </div>
 
 <div class="bg-surface2 rounded-lg p-6 mb-6">
@@ -44,9 +44,9 @@
             <p id="alphaMapeHint" class="text-xs text-gray-500 mt-1 font-mono">// Pilih produk untuk melihat MAPE tiap alpha</p>
         </div>
         <div>
-            <label class="block text-sm text-gray-500 mb-2 font-mono">Product</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Produk</label>
             <select id="productSelect" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
-                <option value="all">All Products</option>
+                <option value="all">Semua Produk</option>
                 {% for product in products %}
                 <option value="{{ product.name }}">{{ product.name }}</option>
                 {% endfor %}
@@ -55,35 +55,35 @@
     </div>
     <div class="grid grid-cols-3 gap-6 mb-6">
         <div>
-            <label class="block text-sm text-gray-500 mb-2 font-mono">Start Date</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Tanggal Mulai</label>
             <input type="date" id="startDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
             <p class="text-xs text-gray-500 mt-1 font-mono">Filter data dari tanggal ini</p>
         </div>
         <div>
-            <label class="block text-sm text-gray-500 mb-2 font-mono">End Date</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Tanggal Selesai</label>
             <input type="date" id="endDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
             <p class="text-xs text-gray-500 mt-1 font-mono">Filter data sampai tanggal ini</p>
         </div>
         <div>
-            <label class="block text-sm text-gray-500 mb-2 font-mono">Forecast Date</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Tanggal Ramalan</label>
             <input type="date" id="nextPeriodDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
             <p class="text-xs text-gray-500 mt-1 font-mono">Tanggal hasil forecast</p>
         </div>
     </div>
     <div class="flex gap-4">
-        <button onclick="calculateForecast()" class="btn-primary px-6 py-2 rounded">Calculate Forecast</button>
-        <button onclick="resetFilters()" class="px-4 py-2 rounded text-sm border border-border text-gray-500 hover:text-gray-900">Reset Filters</button>
+        <button onclick="calculateForecast()" class="btn-primary px-6 py-2 rounded">Hitung Ramalan</button>
+        <button onclick="resetFilters()" class="px-4 py-2 rounded text-sm border border-border text-gray-500 hover:text-gray-900">Reset Filter</button>
     </div>
 </div>
 
 <div id="resultsSection" class="hidden">
     <div class="grid grid-cols-4 gap-4 mb-6">
         <div class="bg-surface2 rounded-lg p-4 text-center">
-            <p class="text-xs text-gray-500 font-mono mb-1">FORECAST</p>
+            <p class="text-xs text-gray-500 font-mono mb-1">RAMALAN</p>
             <p id="nextPeriodForecast" class="text-2xl font-bold text-gray-900">-</p>
         </div>
         <div class="bg-surface2 rounded-lg p-4 text-center">
-            <p class="text-xs text-gray-500 font-mono mb-1">DATE</p>
+            <p class="text-xs text-gray-500 font-mono mb-1">TANGGAL</p>
             <p id="forecastDate" class="text-lg font-bold text-blue-600">-</p>
         </div>
         <div class="bg-surface2 rounded-lg p-4 text-center">
@@ -97,18 +97,18 @@
     </div>
     <div class="grid grid-cols-2 gap-6 mb-6">
         <div class="bg-surface2 rounded-lg p-4">
-            <h4 class="text-sm font-medium text-gray-900 mb-3 font-mono">Chart</h4>
+            <h4 class="text-sm font-medium text-gray-900 mb-3 font-mono">Grafik</h4>
             <div class="h-64"><canvas id="forecastChart"></canvas></div>
         </div>
         <div class="bg-surface2 rounded-lg p-4">
-            <h4 class="text-sm font-medium text-gray-900 mb-3 font-mono">Steps</h4>
+            <h4 class="text-sm font-medium text-gray-900 mb-3 font-mono">Langkah</h4>
             <div class="max-h-64 overflow-y-auto">
                 <table class="w-full text-sm">
                     <thead class="sticky top-0 bg-surface2">
                         <tr>
-                            <th class="px-2 py-1 text-left text-indigo-600 font-mono text-xs">Period</th>
-                            <th class="px-2 py-1 text-left text-indigo-600 font-mono text-xs">Actual</th>
-                            <th class="px-2 py-1 text-left text-indigo-600 font-mono text-xs">Forecast</th>
+                            <th class="px-2 py-1 text-left text-indigo-600 font-mono text-xs">Periode</th>
+                            <th class="px-2 py-1 text-left text-indigo-600 font-mono text-xs">Aktual</th>
+                            <th class="px-2 py-1 text-left text-indigo-600 font-mono text-xs">Ramalan</th>
                         </tr>
                     </thead>
                     <tbody id="calculationStepsBody" class="text-gray-700"></tbody>
@@ -132,7 +132,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span class="text-gray-700 font-mono text-sm">Calculating...</span>
+        <span class="text-gray-700 font-mono text-sm">Menghitung...</span>
     </div>
 </div>
 {% endblock %}
@@ -234,7 +234,7 @@
         const endDate = document.getElementById('endDate').value;
 
         if (!nextPeriodDate) {
-            alert('Pilih tanggal forecast dulu');
+            alert('Pilih tanggal ramalan dulu');
             return;
         }
 
@@ -334,7 +334,7 @@
             const future = f.future_forecasts || [];
 
             datasets.push({
-                label: f.product_name + ' - Actual',
+                label: f.product_name + ' - Aktual',
                 data: [...actuals, ...future.map(() => null)],
                 borderColor: pair.actual,
                 backgroundColor: pair.actual + '30',
@@ -343,7 +343,7 @@
                 tension: 0.1
             });
             datasets.push({
-                label: f.product_name + ' - Forecast',
+                label: f.product_name + ' - Ramalan',
                 data: [...forecastsArr, ...future.map(fc => fc.forecast)],
                 borderColor: pair.forecast,
                 backgroundColor: 'transparent',

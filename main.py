@@ -137,7 +137,7 @@ async def login_submit(
         return templates.TemplateResponse(
             request,
             "login.html",
-            {"error": "Invalid username or password"},
+            {"error": "Username atau password salah"},
             status_code=status.HTTP_401_UNAUTHORIZED
         )
 

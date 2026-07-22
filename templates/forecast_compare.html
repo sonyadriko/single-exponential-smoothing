@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Compare Alpha - Depot Jawara{% endblock %}
+{% block title %}Bandingkan Alpha - Depot Jawara{% endblock %}
 
 {% set active_page = 'forecast_compare' %}
 
@@ -34,14 +34,14 @@
 
 {% block content %}
 <div class="section-title">
-    <h2>Compare Alpha</h2>
+    <h2>Bandingkan Alpha</h2>
     <span class="subtitle">SES(0.1) – SES(0.9)</span>
 </div>
 
 <div class="bg-surface2 rounded-lg p-6 mb-6">
     <div class="grid grid-cols-3 gap-6 mb-6">
         <div>
-            <label class="block text-sm text-gray-500 mb-2 font-mono">Product</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Produk</label>
             <select id="productSelect" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
                 {% for product in products %}
                 <option value="{{ product.name }}">{{ product.name }}</option>
@@ -49,17 +49,17 @@
             </select>
         </div>
         <div>
-            <label class="block text-sm text-gray-500 mb-2 font-mono">Start Date</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Tanggal Mulai</label>
             <input type="date" id="startDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
         </div>
         <div>
-            <label class="block text-sm text-gray-500 mb-2 font-mono">End Date</label>
+            <label class="block text-sm text-gray-500 mb-2 font-mono">Tanggal Selesai</label>
             <input type="date" id="endDate" class="form-input w-full px-4 py-2 rounded font-mono text-sm">
         </div>
     </div>
     <div class="flex gap-4">
-        <button onclick="compareAlphas()" class="btn-primary px-6 py-2 rounded">Compare</button>
-        <button onclick="resetFilters()" class="px-4 py-2 rounded text-sm border border-border text-gray-500 hover:text-gray-900">Reset Filters</button>
+        <button onclick="compareAlphas()" class="btn-primary px-6 py-2 rounded">Bandingkan</button>
+        <button onclick="resetFilters()" class="px-4 py-2 rounded text-sm border border-border text-gray-500 hover:text-gray-900">Reset Filter</button>
     </div>
 </div>
 
@@ -90,7 +90,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span class="text-gray-700 font-mono text-sm">Calculating...</span>
+        <span class="text-gray-700 font-mono text-sm">Menghitung...</span>
     </div>
 </div>
 {% endblock %}
@@ -157,7 +157,7 @@
         document.getElementById('bestAlpha').textContent = bestAlpha !== null ? bestAlpha.toFixed(1) : '-';
 
         const head = document.getElementById('compareTableHead');
-        head.innerHTML = '<th class="px-2 py-1 text-left">Tanggal</th><th class="px-2 py-1 text-left">Actual</th>' +
+        head.innerHTML = '<th class="px-2 py-1 text-left">Tanggal</th><th class="px-2 py-1 text-left">Aktual</th>' +
             ALPHAS.map(a => `<th class="px-2 py-1 text-left ${parseFloat(a) === bestAlpha ? 'best-alpha-col' : ''}">SES(${a})</th>`).join('');
 
         const body = document.getElementById('compareTableBody');

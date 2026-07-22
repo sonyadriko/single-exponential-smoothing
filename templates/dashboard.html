@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Depot Jawara{% endblock %}
+{% block title %}Dasbor - Depot Jawara{% endblock %}
 
 {% block head %}
 <style>
@@ -72,7 +72,7 @@
         </div>
         <div>
             <div class="value">{{ total_products }}</div>
-            <div class="label">Products</div>
+            <div class="label">Produk</div>
         </div>
     </div>
     <div class="stat-box">
@@ -83,7 +83,7 @@
         </div>
         <div>
             <div class="value">{{ total_sales }}</div>
-            <div class="label">Sales</div>
+            <div class="label">Penjualan</div>
         </div>
     </div>
     <div class="stat-box">
@@ -94,7 +94,7 @@
         </div>
         <div>
             <div class="value">{{ total_forecasts }}</div>
-            <div class="label">Forecasts</div>
+            <div class="label">Ramalan</div>
         </div>
     </div>
     <div class="stat-box">
@@ -105,23 +105,23 @@
         </div>
         <div>
             <div class="value">{{ projects|length }}</div>
-            <div class="label">Projects</div>
+            <div class="label">Proyek</div>
         </div>
     </div>
 </div>
 
 <!-- Recent Activity -->
 <div class="section-title">
-    <h2>Dashboard</h2>
-    <span class="subtitle">RECENT ACTIVITY</span>
+    <h2>Dasbor</h2>
+    <span class="subtitle">AKTIVITAS TERBARU</span>
 </div>
 <div class="bg-surface rounded-lg overflow-hidden">
     <table class="data-table w-full">
         <thead>
             <tr>
-                <th class="px-4 py-3 text-left text-blue-600 font-mono">Date</th>
-                <th class="px-4 py-3 text-left text-blue-600 font-mono">Product</th>
-                <th class="px-4 py-3 text-right text-blue-600 font-mono">Quantity</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Tanggal</th>
+                <th class="px-4 py-3 text-left text-blue-600 font-mono">Produk</th>
+                <th class="px-4 py-3 text-right text-blue-600 font-mono">Jumlah</th>
             </tr>
         </thead>
         <tbody class="text-gray-700">
@@ -136,7 +136,7 @@
             {% endfor %}
             {% if not recent_sales %}
             <tr>
-                <td colspan="3" class="px-4 py-8 text-center text-gray-500 font-mono">// No recent activity</td>
+                <td colspan="3" class="px-4 py-8 text-center text-gray-500 font-mono">// Belum ada aktivitas</td>
             </tr>
             {% endif %}
         </tbody>
